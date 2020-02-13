@@ -23,12 +23,22 @@ public class JFlyNode {
     public static final int defaultPort = 44665;
     private int myID = 0;
     private BlockchainNodeManager blockManager;
+    private ArrayList ConnectionThreadDirectory;
+    public synchronized void registerThread(OneLinkThread thread)
+    {
+        if(!ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.add(thread); }
+    }
+    public synchronized void unregisterThread(OneLinkThread thread)
+    {
+        if(ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.remove(thread); }
+    }
     public static void main(String[] args)
     {
         new JFlyNode();
     }
     public JFlyNode()
     {
+        ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
         FlyInterface startUpInter = new FlyInterface(this, 0);
     }
@@ -38,29 +48,43 @@ public class JFlyNode {
         ExecutorService receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
             while (true) {
-                receivePool.execute(new ServerStyleThread(listener.accept()));
+                receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
         }
     }
     public static abstract class OneLinkThread implements Runnable
     {
+        private volatile Boolean stopping = false;
+        protected JFlyNode jNode;
+        public OneLinkThread(JFlyNode myNode)
+        {
+            jNode = myNode;
+            myNode.registerThread(this);
+        }
         protected Socket mySocket;
         public void run()
         {
             
         }
+        public void stop()
+        {
+            stopping = true;
+            jNode.unregisterThread(this);
+        }
     }
     public static class ServerStyleThread extends OneLinkThread
     {
-        public ServerStyleThread(Socket myAcceptedConnection)
+        public ServerStyleThread(Socket myAcceptedConnection, JFlyNode myNode)
         {
+            super(myNode);
             mySocket = myAcceptedConnection;
         }
     }
     public static class ClientStyleThread extends OneLinkThread
     {
-        public ClientStyleThread(Object[] params) throws IOException
+        public ClientStyleThread(Object[] params, JFlyNode myNode) throws IOException
         {
+            super(myNode);
             String ipAddr = (String)params[0];
             int port = (int)params[1];
             mySocket = new Socket(ipAddr, port);
