@@ -7,7 +7,9 @@ package jfly;
 
 import java.awt.*;
 import java.util.concurrent.*;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 import java.net.SocketAddress;
 import java.awt.event.*;
 import java.io.*;
@@ -15,6 +17,8 @@ import java.net.ServerSocket;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 /**
  *
  * @author Blackhole
@@ -52,19 +56,122 @@ public class JFlyNode {
             }
         }
     }
+    public static class OutputJobInfo
+    {
+        private String type;
+        private String data;
+        private String header;
+        public OutputJobInfo(String myType, String myData, String myHeader)
+        {
+            type = myType;
+            data = myData;
+            header = myHeader;
+        }
+        public String getType()
+        {
+            return type;
+        }
+        public String getData()
+        {
+            return data;
+        }
+        public String getHeader()
+        {
+            return header;
+        }
+    }
     public static abstract class OneLinkThread implements Runnable
     {
         private volatile Boolean stopping = false;
         protected JFlyNode jNode;
+        protected Scanner inLine;
+        protected PrintWriter outLine;
+        protected ReentrantLock jqLock = new ReentrantLock();
         public OneLinkThread(JFlyNode myNode)
         {
             jNode = myNode;
             myNode.registerThread(this);
         }
         protected Socket mySocket;
+        public String getConnectionAddr()
+        {
+            return mySocket.getInetAddress().getHostAddress() + ":" + mySocket.getPort();
+        }
+        public void oneDispatch(OutputJobInfo myJob)
+        {
+            jqLock.lock();
+            try
+            {
+                
+            }
+            finally
+            {
+                jqLock.unlock();
+            }
+        }
+        public void queueDispatch(Queue<OutputJobInfo> myJobs)
+        {
+            jqLock.lock();
+            try
+            {
+                for(OutputJobInfo tji : myJobs)
+                {
+
+                }
+            }
+            finally
+            {
+                jqLock.unlock();
+            }
+        }
         public void run()
         {
-            
+            /* In progress
+            while(stopping == false)
+            {
+                try
+                {
+                    inLine.
+                }
+                catch(InterruptedException e) { }
+                Boolean jobReadyNow = false;
+                if(jqLock.tryLock())
+                {
+                    try
+                    {
+                        if(jobQueue.size() > 0)
+                        {
+                            jobReadyNow = true;
+                        }
+                    }
+                    finally
+                    {
+                        jqLock.unlock();
+                    }
+                }
+                if(jobReadyNow)
+                {
+                    jqLock.lock();
+                    try
+                    {
+                        for(ThreadJobInfo tji : jobQueue)
+                        {
+
+                        }
+                    }
+                    finally
+                    {
+                        jqLock.unlock();
+                    }
+                    jobReadyNow = false;
+                }
+                if(inLine.hasNextLine())
+                {
+                    
+                }
+                this.wait(1000);
+            }
+            */
         }
         public void stop()
         {
