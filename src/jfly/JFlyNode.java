@@ -185,11 +185,18 @@ public class JFlyNode {
                         }
                         finally { jqLock.unlock(); }
                     }
+                    else if(result.equals("SUCCESSFULLY_INTEGRATED"))
+                    {
+                        //Dispatch to all other node connection threads here
+                    }
                     break;
                 case "JFLYCHAINBLOCKREQUEST":
                     String search = jNode.pullOneBlockByHash(datParts[1]);
-                    OutputJobInfo requestResponseJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1] + ":~:" + search, "JFLYCHAINBLOCKREQUEST");
+                    OutputJobInfo requestResponseJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1] + ":~:" + search, "JFLYCHAINBLOCKRESPONSE");
                     oneDispatch(requestResponseJob);
+                    break;
+                case "JFLYCHAINBLOCKRESPONSE":
+                    System.out.println("Warning: Received chain block request response outside of any request task...");
                     break;
             }
             while(receivedDuringBlocking.size() > 0)
