@@ -35,6 +35,12 @@ public class JFlyNode {
     private int myID = 0;
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
+    public synchronized String pullOneBlockByHash(String hash)
+    {
+        String pulledBlock = blockManager.getByHash(hash);
+        if(pulledBlock == null) { return "BLOCK_HASH_NOT_FOUND"; }
+        else{ return pulledBlock; }
+    }
     public synchronized String tryOneBlock(String data)
     {
         int attemptAdd = blockManager.addExtantBlockToChain(data);
@@ -153,31 +159,38 @@ public class JFlyNode {
         {
             LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
             String[] datParts = nextLine.split(":~:");
-            if(datParts[0].equals("JFLYCHAINBLOCK"))
+            switch(datParts[0])               
             {
-                String result = jNode.tryOneBlock(datParts[1]);
-                if(result.equals("FAILED_REQUEST_PREVIOUS"))
-                {
-                    jqLock.lock();
-                    try
+                case "JFLYCHAINBLOCK":                  
+                    String result = jNode.tryOneBlock(datParts[1]);
+                    if(result.equals("FAILED_REQUEST_PREVIOUS"))
                     {
-                        OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1].split("|")[0], "JFLYDATABLOCKREQUEST");
-                        prevReqJob.setToken(jqLock);
-                        oneDispatch(prevReqJob);
-                        while(inLine.hasNextLine())
+                        jqLock.lock();
+                        try
                         {
-                            String received = inLine.nextLine();
-                            String[] responseParts = nextLine.split(":~:");
-                            if(responseParts[0].equals("JFLYDATABLOCKRESPONSE") && responseParts[1].split("|")[0].equals(datParts[1].split("|")[0]))
+                            OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split("|")[0], "JFLYCHAINBLOCKREQUEST");
+                            prevReqJob.setToken(jqLock);
+                            oneDispatch(prevReqJob);
+                            while(inLine.hasNextLine())
                             {
-                                if(!responseParts[1].split("|")[1].equals("BLOCK_HASH_NOT_FOUND")) { }
-                                else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[1]); }
+                                String received = inLine.nextLine();
+                                String[] responseParts = nextLine.split(":~:");
+                                if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split("|")[0]))
+                                {
+                                    if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND")) { }
+                                    else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2]); }
+                                }
+                                else { receivedDuringBlocking.add(received); }
                             }
-                            else { receivedDuringBlocking.add(received); }
                         }
+                        finally { jqLock.unlock(); }
                     }
-                    finally { jqLock.unlock(); } 
-                }
+                    break;
+                case "JFLYCHAINBLOCKREQUEST":
+                    String search = jNode.pullOneBlockByHash(datParts[1]);
+                    OutputJobInfo requestResponseJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1] + ":~:" + search, "JFLYCHAINBLOCKREQUEST");
+                    oneDispatch(requestResponseJob);
+                    break;
             }
             while(receivedDuringBlocking.size() > 0)
             {

@@ -26,6 +26,11 @@ public class BlockchainNodeManager {
         Random rnd = new Random();
         return (new SharedStateBlock(rnd.nextDouble() + "")).getHash();
     }
+    public String getByHash(String hash)
+    {
+        if(sharedStateBlocks.containsKey(hash)) { return ((SharedStateBlock)sharedStateBlocks.get(hash)).toString(); }
+        else { return null; }
+    }
     /*
     0: Added as expected
     1: Was added but BlockChain was empty?
