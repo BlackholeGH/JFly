@@ -18,16 +18,34 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Queue;
+import java.util.LinkedList;
+import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 /**
  *
  * @author Blackhole
  */
 public class JFlyNode {
+    public static long time()
+    {
+        Date date = new Date();
+        return date.getTime();
+    }
     public static final int defaultPort = 44665;
     private int myID = 0;
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
+    public synchronized String tryOneBlock(String data)
+    {
+        int attemptAdd = blockManager.addExtantBlockToChain(data);
+        if(attemptAdd == 2)
+        {
+            return "FAILED_REQUEST_PREVIOUS";
+        }
+        else if(attemptAdd == 0 || attemptAdd == 1) { return "SUCCESSFULLY_INTEGRATED"; }
+        else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
+        else { return "FAILED_OTHER_UNSPECIFIED"; }
+    }
     public synchronized void registerThread(OneLinkThread thread)
     {
         if(!ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.add(thread); }
@@ -58,16 +76,26 @@ public class JFlyNode {
     }
     public static class OutputJobInfo
     {
-        private String type;
+        enum JobType { SINGLE_DISPATCH, MULTIPLE_DISPATCH, INTERNAL_LOCK };
+        private JobType type;
         private String data;
         private String header;
-        public OutputJobInfo(String myType, String myData, String myHeader)
+        private Object token;
+        public OutputJobInfo(JobType myType, String myData, String myHeader)
         {
             type = myType;
             data = myData;
             header = myHeader;
         }
-        public String getType()
+        public void setToken(Object myToken)
+        {
+            token = myToken;
+        }
+        public Object getToken()
+        {
+            return token;
+        }
+        public JobType getType()
         {
             return type;
         }
@@ -82,11 +110,12 @@ public class JFlyNode {
     }
     public static abstract class OneLinkThread implements Runnable
     {
-        private volatile Boolean stopping = false;
+        protected volatile Boolean stopping = false;
         protected JFlyNode jNode;
         protected Scanner inLine;
         protected PrintWriter outLine;
         protected ReentrantLock jqLock = new ReentrantLock();
+        protected ArrayList<String> dispatchLog = new ArrayList<String>();
         public OneLinkThread(JFlyNode myNode)
         {
             jNode = myNode;
@@ -99,83 +128,75 @@ public class JFlyNode {
         }
         public void oneDispatch(OutputJobInfo myJob)
         {
-            jqLock.lock();
+            Boolean bypass = false;
+            if(myJob.type == OutputJobInfo.JobType.INTERNAL_LOCK && myJob.token == jqLock) { bypass = true; }
+            if(!bypass) { jqLock.lock(); }
             try
             {
-                
+                String outData = myJob.getHeader() + ":~:" + myJob.getData();
+                outLine.println(outData);
+                dispatchLog.add(JFlyNode.time() + ":~TIME~:" + outData);
             }
             finally
             {
-                jqLock.unlock();
+                if(!bypass) { jqLock.unlock(); }
             }
         }
         public void queueDispatch(Queue<OutputJobInfo> myJobs)
         {
-            jqLock.lock();
-            try
+            for(OutputJobInfo tji : myJobs)
             {
-                for(OutputJobInfo tji : myJobs)
-                {
-
-                }
-            }
-            finally
-            {
-                jqLock.unlock();
+                oneDispatch(tji);
             }
         }
-        public void run()
+        protected void performNextLineOperation(String nextLine)
         {
-            /* In progress
-            while(stopping == false)
+            LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
+            String[] datParts = nextLine.split(":~:");
+            if(datParts[0].equals("JFLYCHAINBLOCK"))
             {
-                try
-                {
-                    inLine.
-                }
-                catch(InterruptedException e) { }
-                Boolean jobReadyNow = false;
-                if(jqLock.tryLock())
-                {
-                    try
-                    {
-                        if(jobQueue.size() > 0)
-                        {
-                            jobReadyNow = true;
-                        }
-                    }
-                    finally
-                    {
-                        jqLock.unlock();
-                    }
-                }
-                if(jobReadyNow)
+                String result = jNode.tryOneBlock(datParts[1]);
+                if(result.equals("FAILED_REQUEST_PREVIOUS"))
                 {
                     jqLock.lock();
                     try
                     {
-                        for(ThreadJobInfo tji : jobQueue)
+                        OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1].split("|")[0], "JFLYDATABLOCKREQUEST");
+                        prevReqJob.setToken(jqLock);
+                        oneDispatch(prevReqJob);
+                        while(inLine.hasNextLine())
                         {
-
+                            String received = inLine.nextLine();
+                            String[] responseParts = nextLine.split(":~:");
+                            if(responseParts[0].equals("JFLYDATABLOCKRESPONSE") && responseParts[1].split("|")[0].equals(datParts[1].split("|")[0]))
+                            {
+                                if(!responseParts[1].split("|")[1].equals("BLOCK_HASH_NOT_FOUND")) { }
+                                else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[1]); }
+                            }
+                            else { receivedDuringBlocking.add(received); }
                         }
                     }
-                    finally
-                    {
-                        jqLock.unlock();
-                    }
-                    jobReadyNow = false;
+                    finally { jqLock.unlock(); } 
                 }
-                if(inLine.hasNextLine())
-                {
-                    
-                }
-                this.wait(1000);
             }
-            */
+            while(receivedDuringBlocking.size() > 0)
+            {
+                performNextLineOperation(receivedDuringBlocking.pop());
+            }
         }
-        public void stop()
+        public void run()
+        {
+            while(inLine.hasNextLine())
+            {
+                String received = inLine.nextLine();
+                performNextLineOperation(received);
+            }
+        }
+        public void stop() throws IOException
         {
             stopping = true;
+            inLine.close();
+            mySocket.close();
             jNode.unregisterThread(this);
         }
     }

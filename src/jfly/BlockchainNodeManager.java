@@ -31,6 +31,7 @@ public class BlockchainNodeManager {
     1: Was added but BlockChain was empty?
     2: Failed to add, no matching PrevHash in chain, request more blocks
     3: Couldn't construct new block. Verification failed?
+    4: Block already present or hash collision
     */
     public int addExtantBlockToChain(String blockData)
     {
@@ -44,6 +45,7 @@ public class BlockchainNodeManager {
         {
             if(hashChain.size() > 0)
             {
+                if(sharedStateBlocks.containsKey(extBlock.getHash())) { return 4; }
                 String lastBlockHash = "";
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
@@ -153,7 +155,7 @@ public class BlockchainNodeManager {
                     }
                     else
                     {
-                        char nConstr = (char)((tempTotal % 94) + 33);
+                        char nConstr = (char)((tempTotal % 90) + 33);
                         collate = collate + nConstr;
                         tempTotal = c;
                         rolling = blockSize;
