@@ -116,7 +116,7 @@ public class BlockchainNodeManager {
     }
     private class SharedStateBlock
     {
-        private class StateBlockVerificationException extends Exception
+        class StateBlockVerificationException extends Exception
         {
             public StateBlockVerificationException(String message)
             {

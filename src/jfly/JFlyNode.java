@@ -116,6 +116,20 @@ public class JFlyNode {
     }
     public static abstract class OneLinkThread implements Runnable
     {
+        public static class RemoteBlockIntegrationException extends Exception
+        {
+            enum FailureType { MissingRemoteHashOnRequest, PostCascadeNonIntegration }
+            FailureType myFailure;
+            public RemoteBlockIntegrationException(String message, FailureType type)
+            {
+                super(message);
+                myFailure = type;
+            }
+            public FailureType getFailure()
+            {
+                return myFailure;
+            }
+        }
         protected volatile Boolean stopping = false;
         protected JFlyNode jNode;
         protected Scanner inLine;
@@ -155,7 +169,11 @@ public class JFlyNode {
                 oneDispatch(tji);
             }
         }
-        protected void performNextLineOperation(String nextLine)
+        protected void doPanthreadDispatch(String block)
+        {
+            
+        }
+        protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException
         {
             LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
             String[] datParts = nextLine.split(":~:");
@@ -177,17 +195,27 @@ public class JFlyNode {
                                 String[] responseParts = nextLine.split(":~:");
                                 if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split("|")[0]))
                                 {
-                                    if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND")) { }
+                                    if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND"))
+                                    {
+                                        throw new RemoteBlockIntegrationException("BLOCK_HASH_NOT_FOUND", RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest);
+                                    }
                                     else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2]); }
+                                    break;
                                 }
                                 else { receivedDuringBlocking.add(received); }
+                            }
+                            String secondResult = jNode.tryOneBlock(datParts[1]);
+                            if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
+                            else
+                            {
+                                doPanthreadDispatch(nextLine);
                             }
                         }
                         finally { jqLock.unlock(); }
                     }
                     else if(result.equals("SUCCESSFULLY_INTEGRATED"))
                     {
-                        //Dispatch to all other node connection threads here
+                        doPanthreadDispatch(nextLine);
                     }
                     break;
                 case "JFLYCHAINBLOCKREQUEST":
@@ -209,7 +237,14 @@ public class JFlyNode {
             while(inLine.hasNextLine())
             {
                 String received = inLine.nextLine();
-                performNextLineOperation(received);
+                try
+                {
+                    performNextLineOperation(received);
+                }
+                catch(RemoteBlockIntegrationException rbie)
+                {
+                    
+                }
             }
         }
         public void stop() throws IOException
