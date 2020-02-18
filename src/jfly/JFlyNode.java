@@ -35,6 +35,7 @@ public class JFlyNode {
     private int myID = 0;
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
+    private ReentrantLock threadListLock = new ReentrantLock();
     public synchronized String pullOneBlockByHash(String hash)
     {
         String pulledBlock = blockManager.getByHash(hash);
@@ -52,13 +53,40 @@ public class JFlyNode {
         else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
         else { return "FAILED_OTHER_UNSPECIFIED"; }
     }
-    public synchronized void registerThread(OneLinkThread thread)
+    public void sendJobToThreads(OutputJobInfo job, OneLinkThread[] blacklist)
     {
-        if(!ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.add(thread); }
+        threadListLock.lock();
+        try
+        {
+            for(Object thread : ConnectionThreadDirectory)
+            {
+                OneLinkThread trueThread = (OneLinkThread)thread;
+                for(OneLinkThread blackThread : blacklist)
+                {
+                    if(blackThread == trueThread) { continue; }
+                }
+                trueThread.oneDispatch(job);
+            }
+        }
+        finally { threadListLock.unlock(); }
     }
-    public synchronized void unregisterThread(OneLinkThread thread)
+    public void registerThread(OneLinkThread thread)
     {
-        if(ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.remove(thread); }
+        threadListLock.lock();
+        try
+        {
+            if(!ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.add(thread); }
+        }
+        finally { threadListLock.unlock(); }
+    }
+    public void unregisterThread(OneLinkThread thread)
+    {
+        threadListLock.lock();
+        try
+        {
+            if(ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.remove(thread); }
+        }
+        finally { threadListLock.unlock(); }
     }
     public static void main(String[] args)
     {
@@ -134,7 +162,8 @@ public class JFlyNode {
         protected JFlyNode jNode;
         protected Scanner inLine;
         protected PrintWriter outLine;
-        protected ReentrantLock jqLock = new ReentrantLock();
+        protected ReentrantLock outputLock = new ReentrantLock();
+        protected ReentrantLock inputLock = new ReentrantLock();
         protected ArrayList<String> dispatchLog = new ArrayList<String>();
         public OneLinkThread(JFlyNode myNode)
         {
@@ -149,8 +178,8 @@ public class JFlyNode {
         public void oneDispatch(OutputJobInfo myJob)
         {
             Boolean bypass = false;
-            if(myJob.type == OutputJobInfo.JobType.INTERNAL_LOCK && myJob.token == jqLock) { bypass = true; }
-            if(!bypass) { jqLock.lock(); }
+            if(myJob.type == OutputJobInfo.JobType.INTERNAL_LOCK && myJob.token == outputLock) { bypass = true; }
+            if(!bypass) { outputLock.lock(); }
             try
             {
                 String outData = myJob.getHeader() + ":~:" + myJob.getData();
@@ -159,7 +188,7 @@ public class JFlyNode {
             }
             finally
             {
-                if(!bypass) { jqLock.unlock(); }
+                if(!bypass) { outputLock.unlock(); }
             }
         }
         public void queueDispatch(Queue<OutputJobInfo> myJobs)
@@ -169,9 +198,10 @@ public class JFlyNode {
                 oneDispatch(tji);
             }
         }
-        protected void doPanthreadDispatch(String block)
+        protected void doPanthreadDispatch(String block, String header)
         {
-            
+            OutputJobInfo onForward = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
+            jNode.sendJobToThreads(onForward, new OneLinkThread[] { this });
         }
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException
         {
@@ -183,11 +213,11 @@ public class JFlyNode {
                     String result = jNode.tryOneBlock(datParts[1]);
                     if(result.equals("FAILED_REQUEST_PREVIOUS"))
                     {
-                        jqLock.lock();
+                        outputLock.lock();
                         try
                         {
                             OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split("|")[0], "JFLYCHAINBLOCKREQUEST");
-                            prevReqJob.setToken(jqLock);
+                            prevReqJob.setToken(outputLock);
                             oneDispatch(prevReqJob);
                             while(inLine.hasNextLine())
                             {
@@ -208,14 +238,14 @@ public class JFlyNode {
                             if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
                             else
                             {
-                                doPanthreadDispatch(nextLine);
+                                doPanthreadDispatch(datParts[1], datParts[0]);
                             }
                         }
-                        finally { jqLock.unlock(); }
+                        finally { outputLock.unlock(); }
                     }
                     else if(result.equals("SUCCESSFULLY_INTEGRATED"))
                     {
-                        doPanthreadDispatch(nextLine);
+                        doPanthreadDispatch(datParts[1], datParts[0]);
                     }
                     break;
                 case "JFLYCHAINBLOCKREQUEST":
@@ -236,15 +266,24 @@ public class JFlyNode {
         {
             while(inLine.hasNextLine())
             {
-                String received = inLine.nextLine();
+                inputLock.lock();
                 try
                 {
-                    performNextLineOperation(received);
+                    String received = inLine.nextLine();
+                    try
+                    {
+                        performNextLineOperation(received);
+                    }
+                    catch(RemoteBlockIntegrationException rbie)
+                    {
+                        if(rbie.myFailure == RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest)
+                        {
+                            JOptionPane.showMessageDialog(null, "A block was received from an external cluster or node with an orphaned blockchain. Cannot accept at this time.");
+                        }
+                    }
                 }
-                catch(RemoteBlockIntegrationException rbie)
-                {
-                    
-                }
+                finally { inputLock.unlock(); }
+                if(stopping) { break; }
             }
         }
         public void stop() throws IOException
