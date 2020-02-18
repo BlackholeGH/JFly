@@ -8,6 +8,7 @@ package jfly;
 import java.util.HashMap;
 import java.util.Stack;
 import java.util.Random;
+import java.util.Date;
 
 /**
  *
@@ -17,6 +18,10 @@ public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
+    public JFlyNode getJNode()
+    {
+        return myNode;
+    }
     public BlockchainNodeManager(JFlyNode associatedNode)
     {
         myNode = associatedNode;
@@ -164,6 +169,19 @@ public class BlockchainNodeManager {
         public SharedStateBlock(BlockchainNodeManager bnManager, ContentType newContentType, String newContentData)
         {
             myManager = bnManager;
+            contentType = newContentType;
+            Date createDate = new Date(JFlyNode.time());
+            if(newContentType == ContentType.GENESIS)
+            {
+                contentData = "New cluster was created at " + createDate.toString() + ". #BIGDUCKROBOT";
+            }
+            else
+            {
+                contentData = newContentData;
+                originatingUserID = myManager.getJNode().getUserID();
+            }
+            updateTime = createDate.getTime();
+            
         }
         public static String getRawHash(String temp)
         {          
