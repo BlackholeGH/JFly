@@ -31,8 +31,12 @@ public class JFlyNode {
         Date date = new Date();
         return date.getTime();
     }
+    public String getUserID()
+    {
+        return myID;
+    }
     public static final int defaultPort = 44665;
-    private int myID = 0;
+    private String myID = "";
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
     private ReentrantLock threadListLock = new ReentrantLock();
@@ -49,7 +53,11 @@ public class JFlyNode {
         {
             return "FAILED_REQUEST_PREVIOUS";
         }
-        else if(attemptAdd == 0 || attemptAdd == 1) { return "SUCCESSFULLY_INTEGRATED"; }
+        else if(attemptAdd == 0 || attemptAdd == 1)
+        {
+            
+            return "SUCCESSFULLY_INTEGRATED";
+        }
         else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
         else { return "FAILED_OTHER_UNSPECIFIED"; }
     }
