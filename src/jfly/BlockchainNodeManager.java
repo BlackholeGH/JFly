@@ -8,6 +8,7 @@ package jfly;
 import java.util.HashMap;
 import java.util.Stack;
 import java.util.Random;
+import java.util.Date;
 
 /**
  *
@@ -17,6 +18,10 @@ public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
+    public JFlyNode getJNode()
+    {
+        return myNode;
+    }
     public BlockchainNodeManager(JFlyNode associatedNode)
     {
         myNode = associatedNode;
@@ -24,7 +29,7 @@ public class BlockchainNodeManager {
     public String tryOneHash()
     {
         Random rnd = new Random();
-        return (new SharedStateBlock(rnd.nextDouble() + "")).getHash();
+        return (new SharedStateBlock(this, rnd.nextDouble() + "")).getHash();
     }
     public String getByHash(String hash)
     {
@@ -40,7 +45,7 @@ public class BlockchainNodeManager {
     */
     public int addExtantBlockToChain(String blockData)
     {
-        SharedStateBlock extBlock = new SharedStateBlock();
+        SharedStateBlock extBlock = new SharedStateBlock(this);
         try
         {
             extBlock = extBlock.getOneBlock(blockData);
@@ -114,30 +119,71 @@ public class BlockchainNodeManager {
         }
         else { return 3; }
     }
-    private class SharedStateBlock
+    public static class SharedStateBlock
     {
-        class StateBlockVerificationException extends Exception
+        public static class StateBlockVerificationException extends Exception
         {
             public StateBlockVerificationException(String message)
             {
                 super(message);
             }
         }
+        public static enum ContentType
+        {
+            MESSAGE, USER_JOINED, USER_LEFT, SYSTEM_UTIL, GENESIS, GROUP_REGISTRAR;
+            public static ContentType fromString(String cTypeStr)
+            {
+                switch(cTypeStr.toUpperCase())
+                {
+                    case "MESSAGE":
+                        return MESSAGE;
+                    case "USER_JOINED":
+                        return USER_JOINED;
+                    case "USER_LEFT":
+                        return USER_LEFT;
+                    case "SYSTEM_UTIL":
+                        return SYSTEM_UTIL;
+                    case "GENESIS":
+                        return GENESIS;
+                    case "GROUP_REGISTRAR":
+                        return GROUP_REGISTRAR;
+                }
+                return null;
+            }
+        }
         String localPrevBlockHash = "";
-        String contentType = "";
+        ContentType contentType;
         String contentData = "";
         String originatingUserID = "";
         long updateTime = 0;
-        public SharedStateBlock() { }
-        public SharedStateBlock(String prevHash)
+        BlockchainNodeManager myManager;
+        public SharedStateBlock(BlockchainNodeManager bnManager)
         {
+            myManager = bnManager;
+        }
+        public SharedStateBlock(BlockchainNodeManager bnManager, String prevHash)
+        {
+            myManager = bnManager;
             localPrevBlockHash = prevHash;
         }
-        public SharedStateBlock(String newContentType, String newContentData)
+        public SharedStateBlock(BlockchainNodeManager bnManager, ContentType newContentType, String newContentData)
         {
+            myManager = bnManager;
+            contentType = newContentType;
+            Date createDate = new Date(JFlyNode.time());
+            if(newContentType == ContentType.GENESIS)
+            {
+                contentData = "New cluster was created at " + createDate.toString() + ". #BIGDUCKROBOT";
+            }
+            else
+            {
+                contentData = newContentData;
+                originatingUserID = myManager.getJNode().getUserID();
+            }
+            updateTime = createDate.getTime();
             
         }
-        public String getRawHash(String temp)
+        public static String getRawHash(String temp)
         {          
             int blockSize = 0;
             for(int i = 0; i < temp.length(); i++)
@@ -187,13 +233,13 @@ public class BlockchainNodeManager {
         {
             return getRawHash(getRawHash(getRawHash(myDat())));
         }
-         public String getHash(String data)
+        public static String getHash(String data)
         {
             return getRawHash(getRawHash(getRawHash(data)));
         }
         private String myDat()
         {
-            return localPrevBlockHash + "|" + updateTime + "|" + originatingUserID + "|" + contentType + "|" + contentData;
+            return localPrevBlockHash + "|" + updateTime + "|" + originatingUserID + "|" + contentType.toString() + "|" + contentData;
         }
         @Override
         public String toString()
@@ -206,13 +252,17 @@ public class BlockchainNodeManager {
             localPrevBlockHash = dataSegs[0];
             updateTime = Long.getLong(dataSegs[1]);
             originatingUserID = dataSegs[2];
-            contentType = dataSegs[3];
+            contentType = ContentType.fromString(dataSegs[3]);
             contentData = dataSegs[4];
             return dataSegs[5];
         }
         public SharedStateBlock getOneBlock(String initData) throws StateBlockVerificationException
         {
-            SharedStateBlock oneBlock = new SharedStateBlock();
+            return getOneBlock(myManager, initData);
+        }
+        public static SharedStateBlock getOneBlock(BlockchainNodeManager rqManager, String initData) throws StateBlockVerificationException
+        {
+            SharedStateBlock oneBlock = new SharedStateBlock(rqManager);
             String queryHash = oneBlock.selfInitialize(initData);
             if(queryHash.equals(oneBlock.getHash()))
             {
