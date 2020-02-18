@@ -62,7 +62,7 @@ public class JFlyNode {
     }
     public static void main(String[] args)
     {
-        new JFlyNode();
+        new GUI();
     }
     public JFlyNode()
     {
