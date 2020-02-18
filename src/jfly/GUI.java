@@ -30,7 +30,7 @@ public class GUI extends JFrame {
 //**************************************************************************************
     //Class variables
 //**************************************************************************************
-    JButton solveButton;
+    JButton sendButton;
     JScrollPane sp;
     JScrollPane sp2;
     JScrollPane sp3;
@@ -51,6 +51,7 @@ public class GUI extends JFrame {
     JButton button;
     JButton clear;
     JTextField textField1;
+    JTextField msgBox;
     JTextArea txtArea1;
     JTextArea txtArea2;
     JComboBox FunctionBox;
@@ -120,11 +121,11 @@ public class GUI extends JFrame {
 
         //setting up the button for Alg solving
 //****************************************************************************************************************
-        solveButton = new JButton();
-        solveButton.setFont(fnt);
-        solveButton.setToolTipText("Calculates Selected Algorithm with Function");
-        solveButton.setText("Solve");
-        solveButton.addActionListener(lforButton);
+        sendButton = new JButton();
+        sendButton.setFont(fnt);
+        sendButton.setToolTipText("Calculates Selected Algorithm with Function");
+        sendButton.setText("Send");
+        sendButton.addActionListener(lforButton);
 //****************************************************************************************************************
 
         //setting up the button for function solving
@@ -148,6 +149,7 @@ public class GUI extends JFrame {
         clear.setFont(fnt);
         clear.setText("Clear");
         clear.addActionListener(lforButton);
+       // msgBox.addActionListener(lforButton);
 //****************************************************************************************************************
     }
 
@@ -160,10 +162,12 @@ public class GUI extends JFrame {
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
-        TitledBorder borderTitle = BorderFactory.createTitledBorder("X + F(x) Values");
+        TitledBorder borderTitle = BorderFactory.createTitledBorder("Main Chat"); 
         TitledBorder borderTitle2 = BorderFactory.createTitledBorder("Root Value");
         TitledBorder borderTitle3 = BorderFactory.createTitledBorder("Table Values");
-        borderTitle.setTitleJustification(borderTitle.CENTER);
+       borderTitle.setTitleJustification(borderTitle.CENTER);
+
+  
         borderTitle2.setTitleJustification(borderTitle2.CENTER);
         borderTitle3.setTitleJustification(borderTitle3.CENTER);
 //===================================================================================================================
@@ -195,13 +199,15 @@ public class GUI extends JFrame {
 
         //setting up a south Jpanel for stuff to go into, then adding it to mainframe
 //===================================================================================================================
-        JPanel South = new JPanel(new FlowLayout()); //uses a flow layout
+        JPanel South = new JPanel(new BorderLayout()); //uses a flow layout
         South.setBackground(Color.LIGHT_GRAY);
-        JLabel titleSouth = new JLabel("Show Graph");
-        titleSouth.setFont(fnt2);
-        South.add(titleSouth);
-        South.add(button);
+         msgBox = new JTextField("Enter Text Here");
+        //titleSouth.setFont(fnt2);
+        South.add(msgBox);
+ 
+       // South.add(button);
         mainFrame.add(South, BorderLayout.SOUTH);
+        
 //===================================================================================================================
 
         //using model for jtable, probably wont be needed... I hope
@@ -218,9 +224,13 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------      
         String[] columnNames5 = {"Username", "ID"};//,"f(x(i-1))","f(x(i))","x(i+1)"}; 
         table = new JTable(data, columnNames5);
+  
         JTableHeader header = table.getTableHeader(); //for colour
         header.setBackground(Color.LIGHT_GRAY);
         sp = new JScrollPane(table); //adding table to the scrollpane
+        //table.setPreferredScrollableViewportSize(table.getPreferredSize());
+        table.setRowHeight(30);
+        sp.setPreferredSize(new Dimension(250, 600));
 //        sp.setBorder(borderTitle3);
 //        sp.setBackground(Color.GRAY);
 
@@ -274,15 +284,16 @@ public class GUI extends JFrame {
 
         //Setting x,y,width,height positions for GUI features
 //--------------------------------------------------------------------------------------------------------------------
-        solveButton.setBounds(410, 150, 120, 50);
+        sendButton.setBounds(410, 150, 120, 50);
         calcButton.setBounds(410, 105, 120, 50);
         button.setBounds(480, 150, 120, 50);
         FunctionBox.setBounds(200, 50, 200, 50);
         RootBox.setBounds(200, 150, 200, 50);
         label_select_function.setBounds(40, 50, 150, 50);
         label_select_algorithm.setBounds(35, 150, 200, 50);
-        scrollPane1.setBounds(0, 250, 250, 200);
+        scrollPane1.setBounds(0, 0, 580, 500);
         scrollPane2.setBounds(300, 250, 250, 200);
+     
 //--------------------------------------------------------------------------------------------------------------------
 
         //settin up a Jpanel mainPanel as the main panel for things to go into
@@ -292,16 +303,16 @@ public class GUI extends JFrame {
         mainPanel.setLayout(null);
 
         mainPanel.setBackground(Color.GRAY);
-        mainPanel.add(label_select_function);
-        mainPanel.add(FunctionBox);
-        mainPanel.add(label_select_algorithm);
-        mainPanel.add(RootBox);
-        mainPanel.add(solveButton);
-        mainFrame.add(calcButton);
+       // mainPanel.add(label_select_function);
+       // mainPanel.add(FunctionBox);
+       // mainPanel.add(label_select_algorithm);
+       // mainPanel.add(RootBox);
+       mainPanel.add(sendButton);
+       // mainFrame.add(calcButton);
         // mainPanel.add(clear);
         //mainPanel.add(textField1);
         mainPanel.add(scrollPane1);
-        mainPanel.add(scrollPane2);
+        //mainPanel.add(scrollPane2);
         //mainPanel.setVisible(true);
 
         mainFrame.add(mainPanel);
@@ -380,9 +391,9 @@ public class GUI extends JFrame {
             String Alg1 = RootBox.getSelectedItem().toString(); //gets selected item from the Rootbox
             
 
-            if (e.getSource() == solveButton) {
-                txtArea2.setText(Alg1);
-                txtArea2.setText(FunctionBox.getSelectedItem().toString());
+            if (e.getSource() == sendButton) {
+                txtArea1.setText(msgBox.getText().toString());
+                //txtArea2.setText(FunctionBox.getSelectedItem().toString());
 
                 switch (Alg1) {
                     
