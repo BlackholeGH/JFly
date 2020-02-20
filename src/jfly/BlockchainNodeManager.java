@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Stack;
 import java.util.Random;
 import java.util.Date;
+import java.util.ArrayList;
+
 
 /**
  *
@@ -18,6 +20,76 @@ public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
+    public void calculateConfigs(NetworkConfigurationState cur, int depth)
+    {
+        ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
+        Stack<String> hashClone = (Stack<String>)hashChain.clone();
+        Stack<String> hashCloneReOrder = new Stack<String>();
+        for(int i = 0; i < depth; i++)
+        {
+            hashCloneReOrder.add(hashClone.pop());
+        }
+        for(int i = 0; i < depth; i++)
+        {
+            SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
+            if(current.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR)
+            {
+                String[] regiUsers = current.getContentData().split("/-/");
+                for(String usr : regiUsers)
+                {
+                    NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(usr);
+                    newUsers.add(newUser);
+                }
+            }
+            else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
+            {
+                NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
+                newUser.setID(current.getHash());
+                newUsers.add(newUser);
+            }
+            else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
+            {
+                NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
+                NetworkConfigurationState.UserInfo oldUser = null;
+                for(NetworkConfigurationState.UserInfo u : newUsers)
+                {
+                    if(u.getID() == newUser.getID())
+                    {
+                        oldUser = u;
+                        break;
+                    }
+                }
+                if(oldUser != null) { newUsers.remove(oldUser); }
+            }
+        }
+        cur.reWriteAll(newUsers);
+    }
+    public String[] getLast(int depth)
+    {
+        ArrayList<String> msgs = new ArrayList<String>();
+        if(depth > hashChain.size()) { depth = hashChain.size(); }
+        Stack<String> hashClone = (Stack<String>)hashChain.clone();
+        Stack<String> hashCloneReOrder = new Stack<String>();
+        for(int i = 0; i < depth; i++)
+        {
+            hashCloneReOrder.add(hashClone.pop());
+        }
+        for(int i = 0; i < depth; i++)
+        {
+            SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
+            if(current.getContentType() == SharedStateBlock.ContentType.MESSAGE)
+            {
+                Date mDate = new Date(current.getCreationTime());
+                msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " (" + mDate.toString() + ") : " + current.getContentData());
+            }
+        }
+        String[] out = new String[msgs.size()];
+        for(int i = 0; i < out.length; i++)
+        {
+            out[i] = msgs.get(i);
+        }
+        return out;
+    }
     public JFlyNode getJNode()
     {
         return myNode;
@@ -25,6 +97,17 @@ public class BlockchainNodeManager {
     public BlockchainNodeManager(JFlyNode associatedNode)
     {
         myNode = associatedNode;
+    }
+    public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
+    {
+        SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData);
+        int adder = addExtantBlockToChain(newBlock.toString());
+        if(adder == 0 || adder == 1)
+        {
+            JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newContentData, "JFLYCHAINBLOCK");
+            myNode.sendJobToThreads(afterAuthorJob, null);
+        }
+        calculateConfigs(myNode.getNCS(), 1);
     }
     public String tryOneHash()
     {
@@ -43,6 +126,7 @@ public class BlockchainNodeManager {
     3: Couldn't construct new block. Verification failed?
     4: Block already present or hash collision
     */
+    private int lastDepth = 0;
     public int addExtantBlockToChain(String blockData)
     {
         SharedStateBlock extBlock = new SharedStateBlock(this);
@@ -55,7 +139,12 @@ public class BlockchainNodeManager {
         {
             if(hashChain.size() > 0)
             {
-                if(sharedStateBlocks.containsKey(extBlock.getHash())) { return 4; }
+                if(sharedStateBlocks.containsKey(extBlock.getHash()))
+                {
+                    calculateConfigs(myNode.getNCS(), lastDepth);
+                    lastDepth = 0;
+                    return 4;
+                }
                 String lastBlockHash = "";
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
@@ -64,11 +153,14 @@ public class BlockchainNodeManager {
                     {
                         for(int i = poppedBlocks.size(); i > 0; i--)
                         {
+                            lastDepth++;
                             SharedStateBlock curReInsert = poppedBlocks.pop();
                             lastBlockHash = curReInsert.getHash();
                             hashChain.add(lastBlockHash);
                             sharedStateBlocks.put(lastBlockHash, curReInsert);
                         }
+                        calculateConfigs(myNode.getNCS(), lastDepth);
+                        lastDepth = 0;
                         return 2;
                     }
                     if(lastBlockHash.length() > 0)
@@ -89,6 +181,7 @@ public class BlockchainNodeManager {
                         curReInsert.setLastBlockHash(lastBlockHash);
                         if(!extPut && ((extBlock.getCreationTime() < curReInsert.getCreationTime()) || (extBlock.getCreationTime() == curReInsert.getCreationTime() && extBlock.getHash().compareTo(curReInsert.getHash()) < 0)))
                         {
+                            lastDepth++;
                             lastBlockHash = extBlock.getHash();
                             hashChain.add(lastBlockHash);
                             sharedStateBlocks.put(lastBlockHash, extBlock);
@@ -96,6 +189,7 @@ public class BlockchainNodeManager {
                             extPut = true;
                         }
                         if(!extPut && extBlock.getHash().compareTo(curReInsert.getHash()) == 0) { System.out.println("Warning: Unexpected hash collision during blockchain insertion(?!)."); }
+                        lastDepth++;
                         lastBlockHash = curReInsert.getHash();
                         hashChain.add(lastBlockHash);
                         sharedStateBlocks.put(lastBlockHash, curReInsert);
@@ -103,10 +197,13 @@ public class BlockchainNodeManager {
                 }
                 else
                 {
+                    lastDepth++;
                     lastBlockHash = extBlock.getHash();
                     hashChain.add(lastBlockHash);
                     sharedStateBlocks.put(lastBlockHash, extBlock);
                 }
+                calculateConfigs(myNode.getNCS(), lastDepth);
+                lastDepth = 0;
                 return 0;
             }
             else
@@ -114,10 +211,17 @@ public class BlockchainNodeManager {
                 String extBlockHash = extBlock.getHash();
                 hashChain.add(extBlockHash);
                 sharedStateBlocks.put(extBlockHash, extBlock);
+                calculateConfigs(myNode.getNCS(), lastDepth);
+                lastDepth = 0;
                 return 1;
             }
         }
-        else { return 3; }
+        else
+        {
+            calculateConfigs(myNode.getNCS(), lastDepth);
+            lastDepth = 0;
+            return 3;
+        }
     }
     public static class SharedStateBlock
     {
@@ -224,6 +328,18 @@ public class BlockchainNodeManager {
         public long getCreationTime()
         {
             return updateTime;
+        }
+        public ContentType getContentType()
+        {
+            return contentType;
+        }
+        public String getContentData()
+        {
+            return contentData;
+        }
+        public String getOUID()
+        {
+            return originatingUserID;
         }
         public String getLastBlockHash()
         {

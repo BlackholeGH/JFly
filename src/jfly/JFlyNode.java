@@ -21,6 +21,8 @@ import java.util.Queue;
 import java.util.LinkedList;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 /**
  *
  * @author Blackhole
@@ -40,6 +42,16 @@ public class JFlyNode {
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
     private ReentrantLock threadListLock = new ReentrantLock();
+    private NetworkConfigurationState myNCS = new NetworkConfigurationState();
+    private ArrayList<String> messageLog = new ArrayList<String>();
+    public NetworkConfigurationState getNCS()
+    {
+        return myNCS;
+    }
+    public String[] getLastMessages(int num)
+    {
+        return blockManager.getLast(num);
+    }
     public synchronized String pullOneBlockByHash(String hash)
     {
         String pulledBlock = blockManager.getByHash(hash);
@@ -69,9 +81,12 @@ public class JFlyNode {
             for(Object thread : ConnectionThreadDirectory)
             {
                 OneLinkThread trueThread = (OneLinkThread)thread;
-                for(OneLinkThread blackThread : blacklist)
+                if(blacklist != null)
                 {
-                    if(blackThread == trueThread) { continue; }
+                    for(OneLinkThread blackThread : blacklist)
+                    {
+                        if(blackThread == trueThread) { continue; }
+                    }
                 }
                 trueThread.oneDispatch(job);
             }
@@ -109,6 +124,10 @@ public class JFlyNode {
     public void openReceiveAndWait(int myPort) throws IOException
     {
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
+        String usr = JOptionPane.showInputDialog("Choose a username!");
+        NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
         ExecutorService receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
             while (true) {
@@ -172,7 +191,7 @@ public class JFlyNode {
         protected PrintWriter outLine;
         protected ReentrantLock outputLock = new ReentrantLock();
         protected ReentrantLock inputLock = new ReentrantLock();
-        protected ArrayList<String> dispatchLog = new ArrayList<String>();
+        protected ArrayList<String> recentDispatchLog = new ArrayList<String>();
         public OneLinkThread(JFlyNode myNode)
         {
             jNode = myNode;
@@ -183,6 +202,33 @@ public class JFlyNode {
         {
             return mySocket.getInetAddress().getHostAddress() + ":" + mySocket.getPort();
         }
+        protected int missed = 0;
+        public void queryReplies()
+        {
+            ArrayList<String> clonedDL = new ArrayList<String>();
+            outputLock.lock();
+            try
+            {
+                clonedDL = (ArrayList<String>)recentDispatchLog.clone();
+            }
+            finally { outputLock.unlock(); }
+            for(String rec : recentDispatchLog)
+            {
+                String[] datSeg = rec.split(":~:");
+                long timeSent = Long.decode(datSeg[0]);
+                if(JFlyNode.time() - timeSent > 5000) { missed++; }
+                if(missed < 3)
+                {
+                    OutputJobInfo missedJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
+                    oneDispatch(missedJob);
+                }
+                else if(missed == 3)
+                {
+                    missed = 4;
+                    
+                }
+            }
+        }
         public void oneDispatch(OutputJobInfo myJob)
         {
             Boolean bypass = false;
@@ -192,7 +238,7 @@ public class JFlyNode {
             {
                 String outData = myJob.getHeader() + ":~:" + myJob.getData();
                 outLine.println(outData);
-                dispatchLog.add(JFlyNode.time() + ":~TIME~:" + outData);
+                recentDispatchLog.add(JFlyNode.time() + ":~:" + getConnectionAddr() + ":~:" + outData);
             }
             finally
             {
@@ -211,12 +257,24 @@ public class JFlyNode {
             OutputJobInfo onForward = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
             jNode.sendJobToThreads(onForward, new OneLinkThread[] { this });
         }
-        protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException
+        Boolean introduction = false;
+        protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
+            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "MSG_ACK");
+            oneDispatch(ack);
             LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
             String[] datParts = nextLine.split(":~:");
             switch(datParts[0])               
             {
+                case "MSG_ACK":
+                    outputLock.lock();
+                    try
+                    {
+                        recentDispatchLog = new ArrayList<String>();
+                        missed = 0;
+                    }
+                    finally { outputLock.unlock(); }
+                    break;
                 case "JFLYCHAINBLOCK":                  
                     String result = jNode.tryOneBlock(datParts[1]);
                     if(result.equals("FAILED_REQUEST_PREVIOUS"))
@@ -246,6 +304,12 @@ public class JFlyNode {
                             if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
                             else
                             {
+                                if(!introduction)
+                                {
+                                    String usr = JOptionPane.showInputDialog("Choose a username!");
+                                    NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
+                                    jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+                                }
                                 doPanthreadDispatch(datParts[1], datParts[0]);
                             }
                         }
@@ -253,6 +317,12 @@ public class JFlyNode {
                     }
                     else if(result.equals("SUCCESSFULLY_INTEGRATED"))
                     {
+                        if(!introduction)
+                        {
+                            String usr = JOptionPane.showInputDialog("Choose a username!");
+                            NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
+                            jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+                        }
                         doPanthreadDispatch(datParts[1], datParts[0]);
                     }
                     break;
@@ -280,7 +350,11 @@ public class JFlyNode {
                     String received = inLine.nextLine();
                     try
                     {
-                        performNextLineOperation(received);
+                        try
+                        {
+                            performNextLineOperation(received);
+                        }
+                        catch(UnknownHostException UHE) {}
                     }
                     catch(RemoteBlockIntegrationException rbie)
                     {
@@ -308,6 +382,8 @@ public class JFlyNode {
         {
             super(myNode);
             mySocket = myAcceptedConnection;
+            OutputJobInfo regiJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, myNode.getNCS().getRegistrar(), "JFLYCHAINBLOCK");
+            oneDispatch(regiJob);
         }
     }
     public static class ClientStyleThread extends OneLinkThread
