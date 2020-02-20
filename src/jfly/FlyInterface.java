@@ -163,7 +163,11 @@ public class FlyInterface extends JFrame implements ActionListener
                 }
                 else
                 {
-                    
+                    try
+                    {
+                        myNode.sendConnectAndOpen(targetIP, targetPort);
+                    }
+                    catch(IOException e) { System.out.println(e.toString()); }
                 }
                 break;
             case "cluster":

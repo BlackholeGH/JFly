@@ -83,7 +83,9 @@ public class GUI extends JFrame {
 
     //GUI prg =
     // Using MVC
-    public GUI() { //making the constructor
+    JFlyNode myNode = null;
+    public GUI(JFlyNode jNode) { //making the constructor
+        myNode = jNode;
         model();
         view();
     }
@@ -344,6 +346,16 @@ public class GUI extends JFrame {
 
     }
 
+    public void remoteSetTextBox(String[] text)
+    {
+        String s = "";
+        for(int i = 0; i < text.length; i++)
+        {
+            s += text[i] + "\n";
+        }
+        txtArea1.setText(s);
+    }
+    
     public void conv(double ans2) {
 //        String pattern = "0.1";
 //        String SecantDP = JOptionPane.showInputDialog("Enter DP");
@@ -460,7 +472,7 @@ public class GUI extends JFrame {
             //Events for calculating the functions
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == sendButton) {
-                txtArea1.append(msgBox.getText().toString() + "\n");
+                myNode.sendMessage(msgBox.getText().toString());
             }
 //--------------------------------------------------------------------------------------------------------------------
 
