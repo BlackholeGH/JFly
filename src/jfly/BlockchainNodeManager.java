@@ -284,8 +284,7 @@ public class BlockchainNodeManager {
                 contentData = newContentData;
                 originatingUserID = myManager.getJNode().getUserID();
             }
-            updateTime = createDate.getTime();
-            
+            updateTime = createDate.getTime();          
         }
         public static String getRawHash(String temp)
         {          
@@ -355,7 +354,12 @@ public class BlockchainNodeManager {
         }
         private String myDat()
         {
-            return localPrevBlockHash + "|" + updateTime + "|" + originatingUserID + "|" + contentType.toString() + "|" + contentData;
+            System.out.println(contentType);
+            return localPrevBlockHash +
+                    "|" + updateTime +
+                    "|" + originatingUserID +
+                    "|" + contentType.toString() +
+                    "|" + contentData;
         }
         @Override
         public String toString()
@@ -365,8 +369,9 @@ public class BlockchainNodeManager {
         public String selfInitialize(String initData)
         {
             String[] dataSegs = initData.split("|");
+            System.out.println(initData);
             localPrevBlockHash = dataSegs[0];
-            updateTime = Long.getLong(dataSegs[1]);
+            updateTime = Long.parseLong(dataSegs[1]);
             originatingUserID = dataSegs[2];
             contentType = ContentType.fromString(dataSegs[3]);
             contentData = dataSegs[4];
