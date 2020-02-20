@@ -52,6 +52,10 @@ public class JFlyNode {
     {
         return blockManager.getLast(num);
     }
+    public void sendMessage(String message)
+    {
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
+    }
     public synchronized String pullOneBlockByHash(String hash)
     {
         String pulledBlock = blockManager.getByHash(hash);
@@ -113,7 +117,7 @@ public class JFlyNode {
     }
     public static void main(String[] args)
     {
-        new GUI();
+        new JFlyNode();
     }
     public JFlyNode()
     {
@@ -123,6 +127,7 @@ public class JFlyNode {
     }
     public void openReceiveAndWait(int myPort) throws IOException
     {
+        myGUI = new GUI(this);
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         String usr = JOptionPane.showInputDialog("Choose a username!");
@@ -130,6 +135,23 @@ public class JFlyNode {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
         ExecutorService receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
+            while (true) {
+                receivePool.execute(new ServerStyleThread(listener.accept(), this));
+            }
+        }
+    }
+    private GUI myGUI = null;
+    public GUI getGUI()
+    {
+        return myGUI;
+    }
+    public void sendConnectAndOpen(String iP, int rPort) throws IOException
+    {
+        myGUI = new GUI(this);
+        ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this);
+        connectThread.run();
+        ExecutorService receivePool = Executors.newFixedThreadPool(500);
+        try (ServerSocket listener = new ServerSocket(defaultPort)) {
             while (true) {
                 receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
@@ -244,6 +266,7 @@ public class JFlyNode {
             {
                 if(!bypass) { outputLock.unlock(); }
             }
+            jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
         }
         public void queueDispatch(Queue<OutputJobInfo> myJobs)
         {
@@ -339,6 +362,7 @@ public class JFlyNode {
             {
                 performNextLineOperation(receivedDuringBlocking.pop());
             }
+            jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
         }
         public void run()
         {
