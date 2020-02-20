@@ -94,6 +94,14 @@ public class NetworkConfigurationState {
         }
         return "UNKNOWN_USER";
     }
+    public String getIDFromIP(String iP)
+    {
+        for(UserInfo ui : myUsers)
+        {
+            if(ui.getIP() == iP) { return ui.getID(); }
+        }
+        return "UNKNOWN_USER";
+    }
     public ArrayList<UserInfo> getUsers()
     {
         ArrayList<UserInfo> newUsers = new ArrayList<UserInfo>();

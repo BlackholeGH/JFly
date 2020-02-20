@@ -35,7 +35,11 @@ public class JFlyNode {
     }
     public String getUserID()
     {
-        return myID;
+        try
+        {
+            return myNCS.getIDFromIP(java.net.InetAddress.getLocalHost().getHostAddress());
+        }
+        catch(Exception e) { return "Retrieval failure"; }
     }
     public static final int defaultPort = 44665;
     private String myID = "";
