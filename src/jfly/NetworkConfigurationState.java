@@ -16,6 +16,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.time.*;
+import java.util.regex.Pattern;
 /**
  *
  * @author dg7239p
@@ -50,7 +51,7 @@ public class NetworkConfigurationState {
         }
         public static UserInfo fromString(String str)
         {
-            String[] attr = str.split("+-+");
+            String[] attr = str.split(Pattern.quote("+-+"), -1);
             return new UserInfo(attr[0], attr[2], attr[1]);
         }
         @Override
@@ -90,7 +91,7 @@ public class NetworkConfigurationState {
     {
         for(UserInfo ui : myUsers)
         {
-            if(ui.getID() == iD) { return ui.getUserName(); }
+            if(ui.getID().equals(iD)) { return ui.getUserName(); }
         }
         return "UNKNOWN_USER";
     }
@@ -98,7 +99,7 @@ public class NetworkConfigurationState {
     {
         for(UserInfo ui : myUsers)
         {
-            if(ui.getIP() == iP) { return ui.getID(); }
+            if(ui.getIP().equals(iP)) { return ui.getID(); }
         }
         return "UNKNOWN_USER";
     }
@@ -110,6 +111,18 @@ public class NetworkConfigurationState {
             newUsers.add(new UserInfo(ui.getIP(), ui.getID(), ui.getUserName()));
         }
         return newUsers;
+    }
+    @Override
+    public String toString()
+    {
+        String out = "";
+        int i = 0;
+        for(UserInfo ui : myUsers)
+        {
+            i++;
+            out = out + i + ": " + ui.getIP() + ", " + ui.getID() + ", " + ui.getUserName() + "\n";
+        }
+        return out;
     }
     public NetworkConfigurationState()
     {

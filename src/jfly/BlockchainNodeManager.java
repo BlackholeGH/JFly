@@ -10,6 +10,7 @@ import java.util.Stack;
 import java.util.Random;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 
 /**
@@ -20,6 +21,11 @@ public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
+    public String lastHash()
+    {
+        if(hashChain.size() > 0) { return hashChain.peek(); }
+        else { return ""; }
+    }
     public void calculateConfigs(NetworkConfigurationState cur, int depth)
     {
         ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
@@ -34,7 +40,7 @@ public class BlockchainNodeManager {
             SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
             if(current.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR)
             {
-                String[] regiUsers = current.getContentData().split("/-/");
+                String[] regiUsers = current.getContentData().split(Pattern.quote("/-/"), -1);
                 for(String usr : regiUsers)
                 {
                     NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(usr);
@@ -44,7 +50,7 @@ public class BlockchainNodeManager {
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
-                newUser.setID(current.getHash());
+                newUser.setID(SharedStateBlock.getHash(current.getHash()));
                 newUsers.add(newUser);
             }
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
@@ -63,6 +69,7 @@ public class BlockchainNodeManager {
             }
         }
         cur.reWriteAll(newUsers);
+        System.out.println(cur);
     }
     public String[] getLast(int depth)
     {
@@ -100,14 +107,15 @@ public class BlockchainNodeManager {
     }
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
-        SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData);
+        SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
         int adder = addExtantBlockToChain(newBlock.toString());
+        System.out.println("Block author status: " + adder);
         if(adder == 0 || adder == 1)
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newContentData, "JFLYCHAINBLOCK");
             myNode.sendJobToThreads(afterAuthorJob, null);
         }
-        calculateConfigs(myNode.getNCS(), 1);
+        //calculateConfigs(myNode.getNCS(), 1);
     }
     public String tryOneHash()
     {
@@ -145,7 +153,7 @@ public class BlockchainNodeManager {
                     lastDepth = 0;
                     return 4;
                 }
-                String lastBlockHash = "";
+                String lastBlockHash = lastHash();
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
                 {
@@ -270,14 +278,15 @@ public class BlockchainNodeManager {
             myManager = bnManager;
             localPrevBlockHash = prevHash;
         }
-        public SharedStateBlock(BlockchainNodeManager bnManager, ContentType newContentType, String newContentData)
+        public SharedStateBlock(BlockchainNodeManager bnManager, ContentType newContentType, String newContentData, String prevHash)
         {
             myManager = bnManager;
+            localPrevBlockHash = prevHash;
             contentType = newContentType;
             Date createDate = new Date(JFlyNode.time());
             if(newContentType == ContentType.GENESIS)
             {
-                contentData = "New cluster was created at " + createDate.toString() + ". #BIGDUCKROBOT";
+                contentData = "JFly blockchain GENESIS block. New cluster was created at " + createDate.toString() + ". #BIGDUCKROBOT";
             }
             else
             {
@@ -354,7 +363,6 @@ public class BlockchainNodeManager {
         }
         private String myDat()
         {
-            System.out.println(contentType);
             return localPrevBlockHash +
                     "|" + updateTime +
                     "|" + originatingUserID +
@@ -368,7 +376,7 @@ public class BlockchainNodeManager {
         }
         public String selfInitialize(String initData)
         {
-            String[] dataSegs = initData.split("|");
+            String[] dataSegs = initData.split("\\|", -1);
             System.out.println(initData);
             localPrevBlockHash = dataSegs[0];
             updateTime = Long.parseLong(dataSegs[1]);

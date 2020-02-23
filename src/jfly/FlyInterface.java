@@ -40,6 +40,7 @@ public class FlyInterface extends JFrame implements ActionListener
     private JFlyNode myNode;
     public FlyInterface(JFlyNode node, int launchMode)
     {
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         myNode = node;
         if(launchMode == 0) { viewLauncher(); }
     }

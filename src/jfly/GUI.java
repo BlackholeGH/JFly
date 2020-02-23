@@ -354,6 +354,8 @@ public class GUI extends JFrame {
             s += text[i] + "\n";
         }
         txtArea1.setText(s);
+        //repaint();
+        System.out.println("Attempted text write...");
     }
     
     public void conv(double ans2) {
@@ -473,6 +475,7 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == sendButton) {
                 myNode.sendMessage(msgBox.getText().toString());
+                msgBox.setText("");
             }
 //--------------------------------------------------------------------------------------------------------------------
 

@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.regex.Pattern;
 /**
  *
  * @author Blackhole
@@ -59,6 +60,7 @@ public class JFlyNode {
     public void sendMessage(String message)
     {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
+        getGUI().remoteSetTextBox(getLastMessages(30));
     }
     public synchronized String pullOneBlockByHash(String hash)
     {
@@ -127,10 +129,40 @@ public class JFlyNode {
     {
         ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
-        FlyInterface startUpInter = new FlyInterface(this, 0);
+        //new FlyInterface(this, 0);
+        try
+        {
+            openReceiveAndWait(-1);
+        }
+        catch(Exception e) { }
+    }
+    public void applyGUI(GUIThread gt)
+    {
+        GUI getGUI = gt.getGUI();
+        if(getGUI != null) { myGUI = getGUI; }
+    }
+    private class GUIThread implements Runnable
+    {
+        private GUI mainGUI = null;
+        private JFlyNode localNode;
+        public GUIThread(JFlyNode myNode)
+        {
+            localNode = myNode;
+        }
+        public GUI getGUI()
+        {
+            return mainGUI;
+        }
+        @Override
+        public void run()
+        {
+            mainGUI = new GUI(localNode);
+            localNode.applyGUI(this);
+        }
     }
     public void openReceiveAndWait(int myPort) throws IOException
     {
+        //new Thread(new GUIThread(this)).start();
         myGUI = new GUI(this);
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
@@ -151,9 +183,10 @@ public class JFlyNode {
     }
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
+        //new Thread(new GUIThread(this)).start();
         myGUI = new GUI(this);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this);
-        connectThread.run();
+        new Thread(connectThread).start();
         ExecutorService receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(defaultPort)) {
             while (true) {
@@ -240,7 +273,7 @@ public class JFlyNode {
             finally { outputLock.unlock(); }
             for(String rec : recentDispatchLog)
             {
-                String[] datSeg = rec.split(":~:");
+                String[] datSeg = rec.split(Pattern.quote(":~:"), -1);
                 long timeSent = Long.decode(datSeg[0]);
                 if(JFlyNode.time() - timeSent > 5000) { missed++; }
                 if(missed < 3)
@@ -290,7 +323,7 @@ public class JFlyNode {
             OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "MSG_ACK");
             oneDispatch(ack);
             LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
-            String[] datParts = nextLine.split(":~:");
+            String[] datParts = nextLine.split(":~:", -1);
             switch(datParts[0])               
             {
                 case "MSG_ACK":
@@ -368,8 +401,14 @@ public class JFlyNode {
             }
             jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
         }
+        Boolean nameSet = false;
         public void run()
         {
+            if(!nameSet)
+            {
+                Thread.currentThread().setName("Socket read thread");
+                nameSet = true;
+            }
             while(inLine.hasNextLine())
             {
                 inputLock.lock();
