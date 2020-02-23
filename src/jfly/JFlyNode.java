@@ -129,12 +129,12 @@ public class JFlyNode {
     {
         ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
-        //new FlyInterface(this, 0);
-        try
+        new FlyInterface(this, 0);
+        /*try
         {
             openReceiveAndWait(-1);
         }
-        catch(Exception e) { }
+        catch(Exception e) { }*/
     }
     public void applyGUI(GUIThread gt)
     {

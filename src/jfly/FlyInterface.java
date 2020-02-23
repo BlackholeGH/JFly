@@ -164,11 +164,17 @@ public class FlyInterface extends JFrame implements ActionListener
                 }
                 else
                 {
-                    try
-                    {
-                        myNode.sendConnectAndOpen(targetIP, targetPort);
-                    }
-                    catch(IOException e) { System.out.println(e.toString()); }
+                    setVisible(false);
+                    Runnable connectTask = () -> {
+                        Thread.currentThread().setName("Incoming connection listener");
+                        try
+                        {
+                            myNode.sendConnectAndOpen(targetIP, targetPort);
+                        }
+                        catch(IOException e) { System.out.println(e.toString()); }
+                    };
+                    new Thread(connectTask).start();
+                    dispose();
                 }
                 break;
             case "cluster":
@@ -181,7 +187,7 @@ public class FlyInterface extends JFrame implements ActionListener
                     }
                     catch(IOException e) { System.out.println(e.toString()); }
                 };
-                openTask.run();
+                new Thread(openTask).start();
                 dispose();
                 break;
             case "setport":
