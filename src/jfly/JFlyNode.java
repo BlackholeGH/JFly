@@ -186,6 +186,10 @@ public class JFlyNode {
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         String usr = JOptionPane.showInputDialog("Choose a username!");
+        if(usr == null)
+        {
+            usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
+        }
         NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
         receivePool = Executors.newFixedThreadPool(500);
@@ -386,6 +390,10 @@ public class JFlyNode {
                                 if(!introduction)
                                 {
                                     String usr = JOptionPane.showInputDialog("Choose a username!");
+                                    if(usr == null)
+                                    {
+                                        usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
+                                    }
                                     NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
                                     jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                                 }
@@ -399,6 +407,10 @@ public class JFlyNode {
                         if(!introduction)
                         {
                             String usr = JOptionPane.showInputDialog("Choose a username!");
+                            if(usr == null)
+                            {
+                                usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
+                            }
                             NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                         }
