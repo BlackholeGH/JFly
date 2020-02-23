@@ -38,11 +38,24 @@ import javax.swing.JToolBar;
 public class FlyInterface extends JFrame implements ActionListener
 {
     private JFlyNode myNode;
-    public FlyInterface(JFlyNode node, int launchMode)
+    public FlyInterface(JFlyNode node)
     {
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(FlyInterface.getExitListener(node));
         myNode = node;
-        if(launchMode == 0) { viewLauncher(); }
+        viewLauncher();
+    }
+    public static WindowListener getExitListener(JFlyNode myNode)
+    {
+        //Remember this anonymous class syntax. Very useful.
+        WindowListener exiter = new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                myNode.shutdownNode();
+            }
+        };
+        return exiter;
     }
     FocusVerifier fL = new FocusVerifier();
     Font fnt = new Font("Ariel", Font.PLAIN, 18);
@@ -174,6 +187,7 @@ public class FlyInterface extends JFrame implements ActionListener
                         catch(IOException e) { System.out.println(e.toString()); }
                     };
                     new Thread(connectTask).start();
+                    myNode.wipeLauncher(this);
                     dispose();
                 }
                 break;
@@ -188,6 +202,7 @@ public class FlyInterface extends JFrame implements ActionListener
                     catch(IOException e) { System.out.println(e.toString()); }
                 };
                 new Thread(openTask).start();
+                myNode.wipeLauncher(this);
                 dispose();
                 break;
             case "setport":

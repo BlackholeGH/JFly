@@ -85,6 +85,7 @@ public class GUI extends JFrame {
     // Using MVC
     JFlyNode myNode = null;
     public GUI(JFlyNode jNode) { //making the constructor
+        addWindowListener(FlyInterface.getExitListener(jNode));
         myNode = jNode;
         model();
         view();
@@ -180,7 +181,8 @@ public class GUI extends JFrame {
         mainFrame.setResizable(false);
         mainFrame.setBackground(Color.GRAY);
         mainFrame.setVisible(true);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        mainFrame.addWindowListener(FlyInterface.getExitListener(myNode));
 //===================================================================================================================
 
         //setting up a North Jpanel for the title to go into, then adding it to mainframe
@@ -463,7 +465,7 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == exiButton) {
                 try {
-                    mainFrame.dispose();
+                    myNode.shutdownNode();
 
                 } catch (Exception fj) {
                     JOptionPane.showMessageDialog(rootPane, "Error");

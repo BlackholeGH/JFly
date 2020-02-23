@@ -42,6 +42,40 @@ public class JFlyNode {
         }
         catch(Exception e) { return "Retrieval failure"; }
     }
+    private Boolean pShutdown = false;
+    public Boolean shuttingDown()
+    {
+        return pShutdown;
+    }
+    public void shutdownNode()
+    {
+        Runnable finalShutdownThread = () -> 
+        {
+            Thread.currentThread().setName("Shutdown cleanup thread");
+            closeAll();
+            pShutdown = true;
+            if(receivePool != null)
+            {
+                receivePool.shutdownNow();
+            }
+            if(myGUI != null) { myGUI.dispose(); }
+            if(launcher != null) { launcher.dispose(); }
+            System.exit(0);
+        };
+        new Thread(finalShutdownThread).start();
+    }
+    public void closeAll()
+    {
+        try
+        {
+            for(Object o : ConnectionThreadDirectory)
+            {
+                OneLinkThread olt = (OneLinkThread)o;
+                olt.stop();
+            }
+        }
+        catch(IOException e) { System.out.println(e.getMessage()); }
+    }
     public static final int defaultPort = 44665;
     private String myID = "";
     private BlockchainNodeManager blockManager;
@@ -125,41 +159,26 @@ public class JFlyNode {
     {
         new JFlyNode();
     }
+    private FlyInterface launcher = null;
     public JFlyNode()
     {
         ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
-        new FlyInterface(this, 0);
+        launcher = new FlyInterface(this);
         /*try
         {
             openReceiveAndWait(-1);
         }
         catch(Exception e) { }*/
     }
-    public void applyGUI(GUIThread gt)
+    public void wipeLauncher(FlyInterface fl)
     {
-        GUI getGUI = gt.getGUI();
-        if(getGUI != null) { myGUI = getGUI; }
-    }
-    private class GUIThread implements Runnable
-    {
-        private GUI mainGUI = null;
-        private JFlyNode localNode;
-        public GUIThread(JFlyNode myNode)
+        if(fl == launcher)
         {
-            localNode = myNode;
-        }
-        public GUI getGUI()
-        {
-            return mainGUI;
-        }
-        @Override
-        public void run()
-        {
-            mainGUI = new GUI(localNode);
-            localNode.applyGUI(this);
+            launcher = null;
         }
     }
+    private ExecutorService receivePool = null;
     public void openReceiveAndWait(int myPort) throws IOException
     {
         //new Thread(new GUIThread(this)).start();
@@ -169,9 +188,9 @@ public class JFlyNode {
         String usr = JOptionPane.showInputDialog("Choose a username!");
         NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
-        ExecutorService receivePool = Executors.newFixedThreadPool(500);
+        receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
-            while (true) {
+            while (!shuttingDown()) {
                 receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
         }
@@ -187,9 +206,9 @@ public class JFlyNode {
         myGUI = new GUI(this);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this);
         new Thread(connectThread).start();
-        ExecutorService receivePool = Executors.newFixedThreadPool(500);
+        receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(defaultPort)) {
-            while (true) {
+            while (!shuttingDown()) {
                 receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
         }
