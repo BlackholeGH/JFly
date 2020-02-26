@@ -103,6 +103,14 @@ public class NetworkConfigurationState {
         }
         return "UNKNOWN_USER";
     }
+    public String getIPFromID(String iD)
+    {
+        for(UserInfo ui : myUsers)
+        {
+            if(ui.getID().equals(iD)) { return ui.getIP(); }
+        }
+        return "UNKNOWN_USER";
+    }
     public ArrayList<UserInfo> getUsers()
     {
         ArrayList<UserInfo> newUsers = new ArrayList<UserInfo>();

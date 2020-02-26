@@ -27,6 +27,10 @@ import java.util.regex.Pattern;
 /**
  *
  * @author Blackhole
+ * TO DO:
+ * issueExistenceTransient()
+ * crossNetworkSeekNode(), including returning existence transient listening, and issuing disconnect notif if not found, from some check in queryReplies()?
+ * Actual transient handling
  */
 public class JFlyNode {
     public static long time()
@@ -117,6 +121,77 @@ public class JFlyNode {
     public NetworkConfigurationState getNCS()
     {
         return myNCS;
+    }
+    public OneLinkThread[] getThreadsForUser(String hashIdentifier)
+    {
+        String tryGetIP = myNCS.getIPFromID(hashIdentifier);
+        if(tryGetIP.equals("UNKNOWN_USER")) { return null; }
+        ArrayList<OneLinkThread> foundThreads = new ArrayList();
+        threadListLock.lock();
+        try
+        {
+            for(Object thread : ConnectionThreadDirectory)
+            {
+                OneLinkThread trueThread = (OneLinkThread)thread;
+                String remoteIP = trueThread.getConnectionAddr().split(":")[0];
+                if(remoteIP.equals(tryGetIP)) { foundThreads.add(trueThread); }
+            }
+        }
+        finally { threadListLock.unlock(); }
+        if(foundThreads.isEmpty()) { return null; }
+        else
+        {
+            return foundThreads.toArray(new OneLinkThread[0]);
+        }
+    }
+    public void attemptContact(String hashIdentifier)
+    {
+        OneLinkThread[] openConnects = getThreadsForUser(hashIdentifier);
+        if(openConnects != null)
+        {
+            OutputJobInfo missedJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
+            for(OneLinkThread olt : openConnects)
+            {
+                olt.oneDispatch(missedJob);
+            }
+        }
+        else
+        {
+            String iP = myNCS.getIPFromID(hashIdentifier);
+            if(!iP.equals("UNKNOWN_USER"))
+            {
+                try
+                {
+                    ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, false);
+                    new Thread(questThread).start();
+                }
+                catch(IOException e) {}
+            }
+        }
+    }
+    private String questNode = "";
+    public Boolean queryAcceptQuester(String questerIP)
+    {
+        Boolean accept = false;
+        if(!questNode.isEmpty())
+        {
+            try
+            {
+                long pastAcceptTime = Long.decode(questNode.split(Pattern.quote(":"), -1)[0]);
+                if(JFlyNode.time() - pastAcceptTime > 30000) { accept = true; }
+            }
+            finally {};
+        }
+        else
+        {
+            accept = true;
+        }
+        if(accept)
+        {
+            questNode = JFlyNode.time() + ":" + questerIP;
+            return true;
+        }
+        else { return false; }
     }
     public String[] getLastMessages(int num)
     {
@@ -209,6 +284,10 @@ public class JFlyNode {
             launcher = null;
         }
     }
+    public void issueExistenceTransient()
+    {
+        
+    }
     private ExecutorService receivePool = null;
     public void openReceiveAndWait(int myPort) throws IOException
     {
@@ -239,7 +318,7 @@ public class JFlyNode {
     {
         //new Thread(new GUIThread(this)).start();
         myGUI = new GUI(this);
-        ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this);
+        ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
         new Thread(connectThread).start();
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(defaultPort)) {
@@ -316,8 +395,10 @@ public class JFlyNode {
             return mySocket.getInetAddress().getHostAddress() + ":" + mySocket.getPort();
         }
         protected int missed = 0;
+        protected Boolean markedCourtesy = false;
         public void queryReplies()
         {
+            if(markedCourtesy) { return; }
             ArrayList<String> clonedDL = new ArrayList<String>();
             outputLock.lock();
             try
@@ -338,7 +419,10 @@ public class JFlyNode {
                 else if(missed == 3)
                 {
                     missed = 4;
-                    
+                    if(!jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()).equals("UNKNOWN_USER"))
+                    {
+                        crossNetworkSeekNode(jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
+                    }
                 }
             }
         }
@@ -366,6 +450,10 @@ public class JFlyNode {
                 oneDispatch(tji);
             }
         }
+        protected void crossNetworkSeekNode(String userHashIdentity)
+        {
+            
+        }
         protected void doPanthreadDispatch(String block, String header)
         {
             OutputJobInfo onForward = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
@@ -374,6 +462,7 @@ public class JFlyNode {
         Boolean introduction = false;
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
+            markedCourtesy = false;
             OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "JFLYMSGACK");
             oneDispatch(ack);
             String[] datParts = nextLine.split(":~:", -1);
@@ -391,7 +480,28 @@ public class JFlyNode {
                 case "JFLYTRANSIENT":
                     if(jNode.allowTransientForwarding(datParts[1]))
                     {
+                        
                         doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
+                    }
+                    break;
+                case "JFLYDISCONNECTCOURTESY":
+                    markedCourtesy = true;
+                    break;
+                case "JFLYQUESTERREQUEST":
+                    if(!jNode.queryAcceptQuester(mySocket.getInetAddress().getHostAddress()))
+                    {
+                        OutputJobInfo turnDownQuester = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "quester_response_disconnect_courtesy", "JFLYDISCONNECTCOURTESY");
+                        oneDispatch(turnDownQuester);
+                        if(!jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()).equals("UNKNOWN_USER"))
+                        {
+                            crossNetworkSeekNode(jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
+                        }
+                    }
+                    else
+                    {
+                        OutputJobInfo acceptQuester = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "quester_response_accepted_notice", "JFLYQUESTERRESPONSE");
+                        oneDispatch(acceptQuester);
+                        jNode.issueExistenceTransient();
                     }
                     break;
                 case "JFLYCHAINBLOCK":                  
@@ -404,6 +514,11 @@ public class JFlyNode {
                     break;
                 case "JFLYCHAINBLOCKRESPONSE":
                     System.out.println("Warning: Received chain block request response outside of any request task...");
+                    break;
+                case "JFLYQUESTERRESPONSE":
+                    System.out.println("Warning: Received quester request response while not questing...");
+                    break;
+                default:
                     break;
             }
             jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
@@ -527,12 +642,57 @@ public class JFlyNode {
     }
     public static class ClientStyleThread extends OneLinkThread
     {
-        public ClientStyleThread(Object[] params, JFlyNode myNode) throws IOException
-        {
+        protected Boolean threadQuesting = false;
+        public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing) throws IOException
+        {        
             super(myNode);
+            if(threadQuesting) { outputLock.lock(); }
             String ipAddr = (String)params[0];
             int port = (int)params[1];
             mySocket = new Socket(ipAddr, port);
+        }
+        @Override
+        public void run()
+        {
+            if(!threadQuesting) { super.run(); }
+            else
+            {
+                while(inLine.hasNextLine())
+                {
+                    inputLock.lock();
+                    try
+                    {
+                        String received = inLine.nextLine();
+                        String[] datParts = received.split(":~:", -1);
+                        switch(datParts[0])               
+                        {
+                            case "JFLYTRANSIENT":
+                                if(jNode.allowTransientForwarding(datParts[1]))
+                                {
+                                    doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
+                                }
+                                break;
+                            case "JFLYDISCONNECTCOURTESY":
+                                try
+                                {
+                                    stop();
+                                }
+                                catch(IOException e) {}
+                                break;
+                            case "JFLYQUESTERRESPONSE":
+                                threadQuesting = false;
+                                inputLock.unlock();
+                                outputLock.unlock();
+                                super.run();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    finally { inputLock.unlock(); }
+                    if(stopping) { break; }
+                }
+            }
         }
     }
 }
