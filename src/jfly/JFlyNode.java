@@ -317,6 +317,7 @@ public class JFlyNode {
         myGUI = new GUI(this);
         blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
+        connectThread.setDemandIntroduction();
         new Thread(connectThread).start();
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(defaultPort)) {
@@ -457,7 +458,11 @@ public class JFlyNode {
             OutputJobInfo onForward = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
             jNode.sendJobToThreads(onForward, new OneLinkThread[] { this });
         }
-        Boolean introduction = false;
+        public void setDemandIntroduction()
+        {
+            introduction = false;
+        }
+        Boolean introduction = true;
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
             markedCourtesy = false;
