@@ -161,12 +161,8 @@ public class JFlyNode {
             String iP = myNCS.getIPFromID(hashIdentifier);
             if(!iP.equals("UNKNOWN_USER"))
             {
-                try
-                {
-                    ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, true);
-                    new Thread(questThread).start();
-                }
-                catch(IOException e) {}
+                ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, true);
+                new Thread(questThread).start();
             }
         }
     }
@@ -636,21 +632,48 @@ public class JFlyNode {
         public ServerStyleThread(Socket myAcceptedConnection, JFlyNode myNode)
         {
             super(myNode);
-            mySocket = myAcceptedConnection;
-            OutputJobInfo regiJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, myNode.getNCS().getRegistrar(), "JFLYCHAINBLOCK");
-            oneDispatch(regiJob);
+            try
+            {
+                mySocket = myAcceptedConnection;
+                inLine = new Scanner(mySocket.getInputStream());
+                outLine = new PrintWriter(mySocket.getOutputStream(), true);
+                OutputJobInfo regiJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, myNode.getNCS().getRegistrar(), "JFLYCHAINBLOCK");
+                oneDispatch(regiJob);
+            }
+            catch(IOException e)
+            {
+                try
+                {
+                    stop();
+                }
+                catch(IOException e2) {}
+            }
         }
     }
     public static class ClientStyleThread extends OneLinkThread
     {
         protected Boolean threadQuesting = false;
-        public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing) throws IOException
-        {        
+        public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing)
+        {
             super(myNode);
             if(threadQuesting) { outputLock.lock(); }
-            String ipAddr = (String)params[0];
-            int port = (int)params[1];
-            mySocket = new Socket(ipAddr, port);
+            try
+            {
+                String ipAddr = (String)params[0];
+                int port = (int)params[1];
+                mySocket = new Socket(ipAddr, port);
+                inLine = new Scanner(mySocket.getInputStream());
+                outLine = new PrintWriter(mySocket.getOutputStream(), true);
+            }
+            catch(IOException e)
+            {
+                try
+                {
+                    stop();
+                }
+                catch(IOException e2) {}
+            }
+            finally { outputLock.unlock(); }
         }
         @Override
         public void run()
