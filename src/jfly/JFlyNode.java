@@ -600,6 +600,7 @@ public class JFlyNode {
                 try
                 {
                     String received = inLine.nextLine();
+                    System.out.println(received);
                     try
                     {
                         try

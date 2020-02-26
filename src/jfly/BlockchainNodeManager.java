@@ -121,7 +121,7 @@ public class BlockchainNodeManager {
         System.out.println("Block author status: " + adder);
         if(adder == 0 || adder == 1)
         {
-            JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newContentData, "JFLYCHAINBLOCK");
+            JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
             myNode.sendJobToThreads(afterAuthorJob, null);
         }
         //calculateConfigs(myNode.getNCS(), 1);
