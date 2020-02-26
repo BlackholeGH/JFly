@@ -82,7 +82,38 @@ public class JFlyNode {
     private ArrayList ConnectionThreadDirectory;
     private ReentrantLock threadListLock = new ReentrantLock();
     private NetworkConfigurationState myNCS = new NetworkConfigurationState();
-    private ArrayList<String> messageLog = new ArrayList<String>();
+    private ArrayList<String> transientMessages = new ArrayList<String>();
+    public synchronized Boolean allowTransientForwarding(String transientPackage)
+    {
+        String tpHash = BlockchainNodeManager.SharedStateBlock.getHash(transientPackage);
+        String foundStr = null;
+        ArrayList<String> expiredTransients = new ArrayList();
+        for(String s : transientMessages)
+        {
+            String[] strs = s.split(Pattern.quote(":+:"), -1);
+            long timeSent = Long.decode(strs[0]);
+            if(time() - timeSent > 30000) { expiredTransients.add(s); }
+            if(strs[1].equals(tpHash))
+            {
+                foundStr = s;
+            }
+        }
+        for(String eT : expiredTransients)
+        {
+            if(eT == foundStr) { continue; }
+            transientMessages.remove(foundStr);
+        }
+        if(foundStr != null)
+        {
+            transientMessages.remove(foundStr);
+            return false;
+        }
+        else
+        {
+            transientMessages.add(time() + ":~:" + tpHash);
+            return true;
+        }
+    }
     public NetworkConfigurationState getNCS()
     {
         return myNCS;
@@ -343,13 +374,12 @@ public class JFlyNode {
         Boolean introduction = false;
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
-            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "MSG_ACK");
+            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "JFLYMSGACK");
             oneDispatch(ack);
-            LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
             String[] datParts = nextLine.split(":~:", -1);
             switch(datParts[0])               
             {
-                case "MSG_ACK":
+                case "JFLYMSGACK":
                     outputLock.lock();
                     try
                     {
@@ -358,51 +388,56 @@ public class JFlyNode {
                     }
                     finally { outputLock.unlock(); }
                     break;
-                case "JFLYCHAINBLOCK":                  
-                    String result = jNode.tryOneBlock(datParts[1]);
-                    if(result.equals("FAILED_REQUEST_PREVIOUS"))
+                case "JFLYTRANSIENT":
+                    if(jNode.allowTransientForwarding(datParts[1]))
                     {
-                        outputLock.lock();
-                        try
-                        {
-                            OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split("|")[0], "JFLYCHAINBLOCKREQUEST");
-                            prevReqJob.setToken(outputLock);
-                            oneDispatch(prevReqJob);
-                            while(inLine.hasNextLine())
-                            {
-                                String received = inLine.nextLine();
-                                String[] responseParts = nextLine.split(":~:");
-                                if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split("|")[0]))
-                                {
-                                    if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND"))
-                                    {
-                                        throw new RemoteBlockIntegrationException("BLOCK_HASH_NOT_FOUND", RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest);
-                                    }
-                                    else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2]); }
-                                    break;
-                                }
-                                else { receivedDuringBlocking.add(received); }
-                            }
-                            String secondResult = jNode.tryOneBlock(datParts[1]);
-                            if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
-                            else
-                            {
-                                if(!introduction)
-                                {
-                                    String usr = JOptionPane.showInputDialog("Choose a username!");
-                                    if(usr == null)
-                                    {
-                                        usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
-                                    }
-                                    NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
-                                    jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
-                                }
-                                doPanthreadDispatch(datParts[1], datParts[0]);
-                            }
-                        }
-                        finally { outputLock.unlock(); }
+                        doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
                     }
-                    else if(result.equals("SUCCESSFULLY_INTEGRATED"))
+                    break;
+                case "JFLYCHAINBLOCK":                  
+                    handleNewBlock(nextLine, datParts);
+                    break;
+                case "JFLYCHAINBLOCKREQUEST":
+                    String search = jNode.pullOneBlockByHash(datParts[1]);
+                    OutputJobInfo requestResponseJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1] + ":~:" + search, "JFLYCHAINBLOCKRESPONSE");
+                    oneDispatch(requestResponseJob);
+                    break;
+                case "JFLYCHAINBLOCKRESPONSE":
+                    System.out.println("Warning: Received chain block request response outside of any request task...");
+                    break;
+            }
+            jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
+        }
+        protected void handleNewBlock(String nextLine, String[] datParts) throws RemoteBlockIntegrationException, UnknownHostException
+        {
+            LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
+            String result = jNode.tryOneBlock(datParts[1]);
+            if(result.equals("FAILED_REQUEST_PREVIOUS"))
+            {
+                outputLock.lock();
+                try
+                {
+                    OutputJobInfo prevReqJob = new OutputJobInfo(OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split("|")[0], "JFLYCHAINBLOCKREQUEST");
+                    prevReqJob.setToken(outputLock);
+                    oneDispatch(prevReqJob);
+                    while(inLine.hasNextLine())
+                    {
+                        String received = inLine.nextLine();
+                        String[] responseParts = nextLine.split(":~:");
+                        if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split("|")[0]))
+                        {
+                            if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND"))
+                            {
+                                throw new RemoteBlockIntegrationException("BLOCK_HASH_NOT_FOUND", RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest);
+                            }
+                            else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2]); }
+                            break;
+                        }
+                        else { receivedDuringBlocking.add(received); }
+                    }
+                    String secondResult = jNode.tryOneBlock(datParts[1]);
+                    if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
+                    else
                     {
                         if(!introduction)
                         {
@@ -416,21 +451,27 @@ public class JFlyNode {
                         }
                         doPanthreadDispatch(datParts[1], datParts[0]);
                     }
-                    break;
-                case "JFLYCHAINBLOCKREQUEST":
-                    String search = jNode.pullOneBlockByHash(datParts[1]);
-                    OutputJobInfo requestResponseJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, datParts[1] + ":~:" + search, "JFLYCHAINBLOCKRESPONSE");
-                    oneDispatch(requestResponseJob);
-                    break;
-                case "JFLYCHAINBLOCKRESPONSE":
-                    System.out.println("Warning: Received chain block request response outside of any request task...");
-                    break;
+                }
+                finally { outputLock.unlock(); }
+            }
+            else if(result.equals("SUCCESSFULLY_INTEGRATED"))
+            {
+                if(!introduction)
+                {
+                    String usr = JOptionPane.showInputDialog("Choose a username!");
+                    if(usr == null)
+                    {
+                        usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
+                    }
+                    NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
+                    jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+                }
+                doPanthreadDispatch(datParts[1], datParts[0]);
             }
             while(receivedDuringBlocking.size() > 0)
             {
                 performNextLineOperation(receivedDuringBlocking.pop());
             }
-            jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
         }
         Boolean nameSet = false;
         public void run()
