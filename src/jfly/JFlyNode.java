@@ -163,7 +163,7 @@ public class JFlyNode {
             {
                 try
                 {
-                    ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, false);
+                    ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, true);
                     new Thread(questThread).start();
                 }
                 catch(IOException e) {}
