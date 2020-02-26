@@ -73,6 +73,7 @@ public class JFlyNode {
     {
         try
         {
+            threadListLock.lock();
             for(Object o : ConnectionThreadDirectory)
             {
                 OneLinkThread olt = (OneLinkThread)o;
@@ -80,6 +81,7 @@ public class JFlyNode {
             }
         }
         catch(IOException e) { System.out.println(e.getMessage()); }
+        finally { threadListLock.unlock(); }
     }
     public static final int defaultPort = 44665;
     private String myID = "";
