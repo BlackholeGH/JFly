@@ -673,7 +673,6 @@ public class JFlyNode {
                 }
                 catch(IOException e2) {}
             }
-            finally { outputLock.unlock(); }
         }
         @Override
         public void run()
