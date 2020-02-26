@@ -214,7 +214,7 @@ public class JFlyNode {
         }
         else if(attemptAdd == 0 || attemptAdd == 1)
         {
-            
+
             return "SUCCESSFULLY_INTEGRATED";
         }
         else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
@@ -315,6 +315,7 @@ public class JFlyNode {
     {
         //new Thread(new GUIThread(this)).start();
         myGUI = new GUI(this);
+        blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
         new Thread(connectThread).start();
         receivePool = Executors.newFixedThreadPool(500);
@@ -637,8 +638,7 @@ public class JFlyNode {
                 mySocket = myAcceptedConnection;
                 inLine = new Scanner(mySocket.getInputStream());
                 outLine = new PrintWriter(mySocket.getOutputStream(), true);
-                OutputJobInfo regiJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, myNode.getNCS().getRegistrar(), "JFLYCHAINBLOCK");
-                oneDispatch(regiJob);
+                myNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GROUP_REGISTRAR, myNode.getNCS().getRegistrar());
             }
             catch(IOException e)
             {

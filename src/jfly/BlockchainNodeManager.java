@@ -21,10 +21,19 @@ public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
+    private ArrayList<String> validRegistrars = new ArrayList();
     public String lastHash()
     {
         if(hashChain.size() > 0) { return hashChain.peek(); }
         else { return ""; }
+    }
+    private Boolean validRegistrarHash(String hash)
+    {
+        for(String h : validRegistrars)
+        {
+            if(h.equals(hash)) { return true; }
+        }
+        return false;
     }
     public void calculateConfigs(NetworkConfigurationState cur, int depth)
     {
@@ -38,7 +47,7 @@ public class BlockchainNodeManager {
         for(int i = 0; i < depth; i++)
         {
             SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
-            if(current.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR)
+            if(current.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && validRegistrarHash(current.getHash()))
             {
                 String[] regiUsers = current.getContentData().split(Pattern.quote("/-/"), -1);
                 for(String usr : regiUsers)
@@ -135,6 +144,11 @@ public class BlockchainNodeManager {
     4: Block already present or hash collision
     */
     private int lastDepth = 0;
+    protected int registrarTolerance = 0;
+    public void addRegistrarTolerance(int incr)
+    {
+        registrarTolerance += incr;
+    }
     public int addExtantBlockToChain(String blockData)
     {
         SharedStateBlock extBlock = new SharedStateBlock(this);
@@ -210,6 +224,11 @@ public class BlockchainNodeManager {
                     hashChain.add(lastBlockHash);
                     sharedStateBlocks.put(lastBlockHash, extBlock);
                 }
+                if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
+                {
+                    validRegistrars.add(extBlock.getHash());
+                    registrarTolerance--;
+                }
                 calculateConfigs(myNode.getNCS(), lastDepth);
                 lastDepth = 0;
                 return 0;
@@ -219,6 +238,11 @@ public class BlockchainNodeManager {
                 String extBlockHash = extBlock.getHash();
                 hashChain.add(extBlockHash);
                 sharedStateBlocks.put(extBlockHash, extBlock);
+                if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
+                {
+                    validRegistrars.add(extBlockHash);
+                    registrarTolerance--;
+                }
                 calculateConfigs(myNode.getNCS(), lastDepth);
                 lastDepth = 0;
                 return 1;
