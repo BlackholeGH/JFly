@@ -237,6 +237,7 @@ public class BlockchainNodeManager {
             else
             {
                 String extBlockHash = extBlock.getHash();
+                lastDepth++;
                 hashChain.add(extBlockHash);
                 sharedStateBlocks.put(extBlockHash, extBlock);
                 if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
