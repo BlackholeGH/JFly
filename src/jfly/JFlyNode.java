@@ -461,9 +461,12 @@ public class JFlyNode {
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
             markedCourtesy = false;
-            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "JFLYMSGACK");
-            oneDispatch(ack);
             String[] datParts = nextLine.split(":~:", -1);
+            if(!datParts[0].equals("JFLYMSGACK"))
+            {
+                OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "JFLYMSGACK");
+                oneDispatch(ack);
+            }
             switch(datParts[0])               
             {
                 case "JFLYMSGACK":

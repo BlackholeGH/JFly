@@ -144,7 +144,7 @@ public class BlockchainNodeManager {
     4: Block already present or hash collision
     */
     private int lastDepth = 0;
-    protected int registrarTolerance = 0;
+    private int registrarTolerance = 0;
     public void addRegistrarTolerance(int incr)
     {
         registrarTolerance += incr;
@@ -227,6 +227,7 @@ public class BlockchainNodeManager {
                 if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
                 {
                     validRegistrars.add(extBlock.getHash());
+                    System.out.println("Added valid registrar");
                     registrarTolerance--;
                 }
                 calculateConfigs(myNode.getNCS(), lastDepth);
@@ -241,6 +242,7 @@ public class BlockchainNodeManager {
                 if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
                 {
                     validRegistrars.add(extBlockHash);
+                    System.out.println("Added valid registrar");
                     registrarTolerance--;
                 }
                 calculateConfigs(myNode.getNCS(), lastDepth);
