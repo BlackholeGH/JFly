@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
  *
  * @author Blackhole
  * TO DO:
+ * Let socket connections time out and dispose the thread if so as unsuccessful
  * issueExistenceTransient()
  * crossNetworkSeekNode(), including returning existence transient listening, and issuing disconnect notif if not found, from some check in queryReplies()?
  * Actual transient handling
