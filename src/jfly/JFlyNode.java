@@ -561,6 +561,7 @@ public class JFlyNode {
                             }
                             NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+                            introduction = true;
                         }
                         doPanthreadDispatch(datParts[1], datParts[0]);
                     }
@@ -578,6 +579,7 @@ public class JFlyNode {
                     }
                     NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
                     jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+                    introduction = true;
                 }
                 doPanthreadDispatch(datParts[1], datParts[0]);
             }
