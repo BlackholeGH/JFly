@@ -168,6 +168,7 @@ public class GUI extends JFrame {
 
         JTableHeader header = table.getTableHeader(); //for colour
         header.setBackground(Color.black);
+        header.setForeground(Color.PINK);
        
         sp = new JScrollPane(table); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
