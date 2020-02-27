@@ -5,11 +5,13 @@
  */
 package jfly;
 
+import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.Stack;
 import java.util.Random;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -104,12 +106,14 @@ public class BlockchainNodeManager {
             if(current.getContentType() == SharedStateBlock.ContentType.MESSAGE)
             {
                 Date mDate = new Date(current.getCreationTime());
-                msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " (" + mDate.toString() + ") : " + current.getContentData());
+                //Locale locale = new Locale("en", "EN");
+                DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
+                msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " (" + dateFormat.format(mDate) + ") : " + current.getContentData());
             }
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
-                //Date mDate = new Date(current.getCreationTime());
-                msgs.add(myNode.getNCS().getUserNameFromID(SharedStateBlock.getHash(current.getHash())) + " joined this cluster.");
+                Date mDate = new Date(current.getCreationTime());
+                msgs.add(myNode.getNCS().getUserNameFromID(SharedStateBlock.getHash(current.getHash())) + " joined this cluster at " + mDate.toString() + ".");
             }
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {
