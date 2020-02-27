@@ -132,11 +132,12 @@ public class GUI extends JFrame {
         mainFrame.setSize(1050, 700);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
-        mainFrame.setBackground(Color.GRAY);
+        mainFrame.setBackground(Color.PINK);
         mainFrame.setVisible(true);
         mainFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         mainFrame.addWindowListener(FlyInterface.getExitListener(myNode));
         mainFrame.setJMenuBar(menuBar);
+        setBackground(Color.PINK);
 //===================================================================================================================
 
         //setting up a North Jpanel for the title to go into, then adding it to mainframe
@@ -152,7 +153,7 @@ public class GUI extends JFrame {
         //setting up a south Jpanel for stuff to go into, then adding it to mainframe
 //===================================================================================================================
         JPanel South = new JPanel(new BorderLayout()); //uses a flow layout
-        South.setBackground(Color.LIGHT_GRAY);
+        South.setBackground(Color.PINK);
         msgBox = new JTextField("");
         msgBox.addActionListener(lforButton);
         South.add(msgBox);
@@ -163,16 +164,21 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------      
         String[] columnNames5 = {"Username", "ID"};//,"f(x(i-1))","f(x(i))","x(i+1)"}; 
         table = new JTable(data, columnNames5);
+        table.setBackground(Color.pink);
 
         JTableHeader header = table.getTableHeader(); //for colour
-        header.setBackground(Color.LIGHT_GRAY);
+        header.setBackground(Color.black);
+       
         sp = new JScrollPane(table); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
         table.setRowHeight(30);
         sp.setPreferredSize(new Dimension(250, 600));
+        sp.setForeground(Color.black);
+        sp.getViewport().setBackground(Color.PINK);
+    
 
         East = new JPanel(new BorderLayout());//(new BorderLayout()); //uses a flow layout
-        East.setBackground(Color.WHITE);
+        East.setBackground(Color.PINK);
         East.add(sp);
         mainFrame.add(East, BorderLayout.EAST);
 //--------------------------------------------------------------------------------------------------------------------
@@ -206,7 +212,7 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
         mainPanel = new JPanel();
         mainPanel.setLayout(null);
-        mainPanel.setBackground(Color.GRAY);  
+        mainPanel.setBackground(Color.pink);  
         South.add(sendButton, BorderLayout.EAST);
         South.add(exiButton, BorderLayout.WEST);
         mainPanel.add(scrollPane1);    
