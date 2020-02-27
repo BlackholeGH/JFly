@@ -76,17 +76,24 @@ public class JFlyNode {
     }
     public void pingThreads()
     {
-        if(ConnectionThreadDirectory.isEmpty()) { return; }
+        ArrayList ctdCopy = null;
         threadListLock.lock();
         try
         {
-            for(Object o : ConnectionThreadDirectory)
+            if(!ConnectionThreadDirectory.isEmpty()) 
+            {
+                ctdCopy = (ArrayList)ConnectionThreadDirectory.clone();
+            }
+        }
+        finally { threadListLock.unlock(); }
+        if(ctdCopy != null)
+        {
+            for(Object o : ctdCopy)
             {
                 OneLinkThread olt = (OneLinkThread)o;
                 olt.queryReplies();
             }
         }
-        finally { threadListLock.unlock(); }
     }
     private void startPinger()
     {
@@ -463,7 +470,7 @@ public class JFlyNode {
         protected long markedCourtesy = -1;
         public void queryReplies()
         {
-            if(JFlyNode.time() - markedCourtesy > 60)
+            if(markedCourtesy > 0 && JFlyNode.time() - markedCourtesy > 60)
             {
                 try
                 {
