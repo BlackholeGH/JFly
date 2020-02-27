@@ -78,14 +78,17 @@ public class JFlyNode {
         try
         {
             threadListLock.lock();
-            for(Object o : ConnectionThreadDirectory)
-            {
-                OneLinkThread olt = (OneLinkThread)o;
+            System.out.println("Closing");
+            for(int i = 0; i < ConnectionThreadDirectory.size(); i++)
+            {    
+                if(ConnectionThreadDirectory.size() == 0) { break; }
+                OneLinkThread olt = (OneLinkThread)ConnectionThreadDirectory.get(0);
                 olt.stop(true);
             }
         }
         catch(IOException e) { System.out.println(e.getMessage()); }
         finally { threadListLock.unlock(); }
+        System.out.println("Closing fin");
     }
     public static final int defaultPort = 44665;
     private String myID = "";
@@ -647,8 +650,8 @@ public class JFlyNode {
         public void stop(Boolean skipBlockUnregister) throws IOException
         {
             stopping = true;
-            inLine.close();
             mySocket.close();
+            inLine.close();
             jNode.unregisterThread(this, skipBlockUnregister);
         }
     }
