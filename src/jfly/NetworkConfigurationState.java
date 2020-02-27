@@ -97,7 +97,7 @@ public class NetworkConfigurationState {
         {
             if(ui.getID().equals(iD)) { return ui.getUserName(); }
         }
-        return "UNKNOWN_USER";
+        return "Unknown User";
     }
     public String getUserDataFromID(String iD)
     {
@@ -105,7 +105,7 @@ public class NetworkConfigurationState {
         {
             if(ui.getID().equals(iD)) { return ui.toString(); }
         }
-        return "UNKNOWN_USER";
+        return "Unknown User";
     }
     public String getIDFromIP(String iP)
     {
@@ -113,7 +113,7 @@ public class NetworkConfigurationState {
         {
             if(ui.getIP().equals(iP)) { return ui.getID(); }
         }
-        return "UNKNOWN_USER";
+        return "Unknown User";
     }
     public String getIPFromID(String iD)
     {
