@@ -493,7 +493,7 @@ public class JFlyNode {
                 String[] datSeg = rec.split(Pattern.quote(":~:"), -1);
                 long timeSent = Long.decode(datSeg[0]);
                 if(JFlyNode.time() - timeSent > 5000) { missed++; }
-                if(missed < 3)
+                if(missed > 0 && missed < 3)
                 {
                     OutputJobInfo missedJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
                     oneDispatch(missedJob);
@@ -548,6 +548,13 @@ public class JFlyNode {
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
             markedCourtesy = -1;
+            missed = 0;
+            outputLock.lock();
+            try
+            {
+                recentDispatchLog.clear();
+            }
+            finally { outputLock.unlock(); }
             String[] datParts = nextLine.split(":~:", -1);
             if(!datParts[0].equals("JFLYMSGACK"))
             {

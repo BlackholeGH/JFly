@@ -142,7 +142,8 @@ public class BlockchainNodeManager {
                 myIntroBlockHash = newBlock.getHash();
             }
         }
-        myNode.getGUI().remoteSetTextBox(myNode.getLastMessages(50));
+        GUI myGUI = myNode.getGUI();
+        if(myGUI != null) { myGUI.remoteSetTextBox(myNode.getLastMessages(50)); }
         //calculateConfigs(myNode.getNCS(), 1);
     }
     public String tryOneHash()
