@@ -313,8 +313,14 @@ public class GUI extends JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyChar() == 38)
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            if (e.getKeyChar() == 38 && msgBox.hasFocus()){
+                JOptionPane.showMessageDialog(rootPane, "up arrow");
+               
+                
+            }
+            
+                
+            
         }
 
         @Override
