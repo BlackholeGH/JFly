@@ -117,10 +117,15 @@ public class FlyInterface extends JFrame implements ActionListener
         myLocalIP.setFont(fntMid);
         myLocalIP.setHorizontalAlignment(JLabel.CENTER);
         myLocalIP.setAlignmentX(CENTER_ALIGNMENT);
+        JLabel defPort = new JLabel("<html>Default JFly port: <b>44665</b></html>");
+        defPort.setFont(fntMid);
+        defPort.setHorizontalAlignment(JLabel.CENTER);
+        defPort.setAlignmentX(CENTER_ALIGNMENT);
         topLabel.add(Box.createVerticalStrut(10));
         topLabel.add(myLocalIP);
+        topLabel.add(defPort);
         
-        topLabel.add(Box.createVerticalStrut(20));
+        topLabel.add(Box.createVerticalStrut(10));
         launcherPanel.add(topLabel, BorderLayout.NORTH);
         
         JPanel launcherOptions = new JPanel();
@@ -185,7 +190,7 @@ public class FlyInterface extends JFrame implements ActionListener
         
         add(launcherPanel);
         
-        setPreferredSize(new Dimension(1000, 550));
+        setPreferredSize(new Dimension(1000, 600));
         pack();
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
