@@ -143,12 +143,13 @@ public class GUI extends JFrame {
 
         //setting up a North Jpanel for the title to go into, then adding it to mainframe
 //===================================================================================================================
-        JPanel north = new JPanel(new FlowLayout()); //used a flow layout
+        JPanel north = new JPanel(new BorderLayout()); //used a flow layout
         north.setBackground(Color.pink);
         Title = new JLabel("JFly");
         Title.setFont(fnt3);
         Title.setForeground(Color.black);
-        north.add(Title, BorderLayout.NORTH);       
+        Title.setHorizontalAlignment(JLabel.CENTER);
+        north.add(Title, BorderLayout.CENTER);       
         mainFrame.add(north, BorderLayout.NORTH);
 //===================================================================================================================
 
@@ -207,7 +208,7 @@ public class GUI extends JFrame {
         //Setting x,y,width,height positions for GUI features
 //--------------------------------------------------------------------------------------------------------------------
         sendButton.setBounds(410, 150, 120, 50);
-        scrollPane1.setBounds(0, 0, 785, 550);
+        scrollPane1.setBounds(0, 0, 785, 542);
     
      
 
@@ -219,7 +220,7 @@ public class GUI extends JFrame {
         mainPanel.setLayout(null);
         mainPanel.setBackground(Color.pink);  
         South.add(sendButton, BorderLayout.EAST);
-        South.add(exiButton, BorderLayout.WEST);
+        north.add(exiButton, BorderLayout.EAST);
         mainPanel.add(scrollPane1);    
         mainFrame.add(mainPanel);
         mainFrame.revalidate();
@@ -327,6 +328,7 @@ public class GUI extends JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
+            if (e.getKeyChar() == 38)
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
