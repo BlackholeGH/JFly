@@ -91,8 +91,8 @@ public class GUI extends JFrame {
         view();
     }
 
-    private void model() {
-        ListenForButton lforButton = new ListenForButton(); //creating an object for action listener
+    ListenForButton lforButton = new ListenForButton();
+    private void model() { //creating an object for action listener
 
         //Configuring the Function Jcombobox defined above as class variable
 //****************************************************************************************************************
@@ -147,7 +147,6 @@ public class GUI extends JFrame {
         clear.setFont(fnt);
         clear.setText("Clear");
         clear.addActionListener(lforButton);
-        // msgBox.addActionListener(lforButton);
 //****************************************************************************************************************
     }
 
@@ -160,7 +159,6 @@ public class GUI extends JFrame {
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
-        setIconImage(FlyInterface.getLogoIcon());
         TitledBorder borderTitle = BorderFactory.createTitledBorder("Main Chat");
         TitledBorder borderTitle2 = BorderFactory.createTitledBorder("Root Value");
         TitledBorder borderTitle3 = BorderFactory.createTitledBorder("Table Values");
@@ -177,6 +175,7 @@ public class GUI extends JFrame {
         //Configuring up the frame
 //===================================================================================================================
         mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
+        mainFrame.setIconImage(FlyInterface.getLogoIcon());
         mainFrame.setSize(1050, 700);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
@@ -200,7 +199,8 @@ public class GUI extends JFrame {
 //===================================================================================================================
         JPanel South = new JPanel(new BorderLayout()); //uses a flow layout
         South.setBackground(Color.LIGHT_GRAY);
-        msgBox = new JTextField("Enter Text Here");
+        msgBox = new JTextField("");
+        msgBox.addActionListener(lforButton);
         //titleSouth.setFont(fnt2);
         South.add(msgBox);
 
@@ -358,7 +358,7 @@ public class GUI extends JFrame {
         }
         txtArea1.setText(s);
         //repaint();
-        System.out.println("Attempted text write...");
+        //System.out.println("Attempted text write...");
     }
     
     public void conv(double ans2) {
@@ -476,13 +476,18 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
             //Events for calculating the functions
 //--------------------------------------------------------------------------------------------------------------------
-            if (e.getSource() == sendButton) {
-                myNode.sendMessage(msgBox.getText().toString());
-                msgBox.setText("");
+            if (e.getSource() == sendButton || e.getSource() == msgBox) {
+                String msg = msgBox.getText().toString();
+                if(!msg.isEmpty())
+                {
+                    myNode.sendMessage(msg);
+                    msgBox.setText("");
+                }
             }
 //--------------------------------------------------------------------------------------------------------------------
 
         }//PB actioned performed
+        
     }//the listener class
 }//Public Class
 

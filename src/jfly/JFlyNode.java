@@ -298,7 +298,7 @@ public class JFlyNode {
         myGUI = new GUI(this);
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
-        String usr = JOptionPane.showInputDialog("Choose a username!");
+        String usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
         if(usr == null)
         {
             usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
@@ -568,7 +568,7 @@ public class JFlyNode {
                     {
                         if(!introduction)
                         {
-                            String usr = JOptionPane.showInputDialog("Choose a username!");
+                            String usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
                             if(usr == null)
                             {
                                 usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
@@ -586,7 +586,7 @@ public class JFlyNode {
             {
                 if(!introduction)
                 {
-                    String usr = JOptionPane.showInputDialog("Choose a username!");
+                    String usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
                     if(usr == null)
                     {
                         usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
