@@ -35,6 +35,7 @@ public class GUI extends JFrame {
     JTextArea txtArea1; 
     JMenuBar menuBar;
     JPanel mainPanel;
+    JMenuItem menuItem;
     DecimalFormat decimalFormat;
 //**************************************************************************************
 
@@ -87,6 +88,9 @@ public class GUI extends JFrame {
         menuBar = new JMenuBar();
         JMenu menu  = new JMenu("Options");
         menu.setFont(fnt);
+        menuItem  = new JMenuItem("Option1");
+        menuItem.addActionListener(lforButton);
+        menu.add(menuItem);
         menuBar.add(menu);
         
         
@@ -112,6 +116,7 @@ public class GUI extends JFrame {
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
         TitledBorder borderTitle = BorderFactory.createTitledBorder("Main Chat");
+        borderTitle.setTitleColor(Color.pink);
         borderTitle.setTitleJustification(borderTitle.CENTER);
 
 //===================================================================================================================
@@ -266,6 +271,9 @@ public class GUI extends JFrame {
 
 
             //button to clear jtext1
+            if(e.getSource() == menuItem){
+                JOptionPane.showMessageDialog(rootPane, "clicked!");
+            }
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == clear && txtArea1.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(rootPane, "Already Clear");
