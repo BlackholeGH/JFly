@@ -59,8 +59,8 @@ public class GUI extends JFrame {
      String courseReq = "";
      String allCourse = "";
      /*/
-    Font fnt = new Font("Georgia", Font.PLAIN, 20);
-    Font fnt2 = new Font("Georgia", Font.PLAIN, 15);
+    Font fnt = new Font("Century Gothic", Font.PLAIN, 20);
+    Font fnt2 = new Font("Century Gothic", Font.PLAIN, 15);
     Font fnt3 = new Font("Century Gothic", Font.PLAIN, 40);
 
     ArrayList<Double> xvalueArr = new ArrayList();
@@ -139,7 +139,7 @@ public class GUI extends JFrame {
         JPanel north = new JPanel(new FlowLayout()); //used a flow layout
         north.setBackground(Color.pink);
         Title = new JLabel("JFly");
-        Title.setFont(fnt2);
+        Title.setFont(fnt3);
         north.add(Title, BorderLayout.NORTH);       
         mainFrame.add(north, BorderLayout.NORTH);
 //===================================================================================================================
