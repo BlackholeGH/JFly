@@ -52,7 +52,11 @@ public class NetworkConfigurationState {
         public static UserInfo fromString(String str)
         {
             String[] attr = str.split(Pattern.quote("+-+"), -1);
-            return new UserInfo(attr[0], attr[2], attr[1]);
+            if(attr.length == 3)
+            {
+                return new UserInfo(attr[0], attr[2], attr[1]);
+            }
+            else { return null; }
         }
         @Override
         public String toString()
