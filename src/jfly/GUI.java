@@ -63,6 +63,7 @@ public class GUI extends JFrame {
     Font fnt = new Font("Century Gothic", Font.PLAIN, 20);
     Font fnt2 = new Font("Century Gothic", Font.PLAIN, 15);
     Font fnt3 = new Font("Century Gothic", Font.PLAIN, 40);
+    
 
     ArrayList<Double> xvalueArr = new ArrayList();
     ArrayList<Double> yvalueArr = new ArrayList();
@@ -146,6 +147,7 @@ public class GUI extends JFrame {
         north.setBackground(Color.pink);
         Title = new JLabel("JFly");
         Title.setFont(fnt3);
+        Title.setForeground(Color.black);
         north.add(Title, BorderLayout.NORTH);       
         mainFrame.add(north, BorderLayout.NORTH);
 //===================================================================================================================
@@ -164,7 +166,8 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------      
         String[] columnNames5 = {"Username", "ID"};//,"f(x(i-1))","f(x(i))","x(i+1)"}; 
         table = new JTable(data, columnNames5);
-        table.setBackground(Color.pink);
+        table.setBackground(Color.black);
+        table.setForeground(Color.pink);
 
         JTableHeader header = table.getTableHeader(); //for colour
         header.setBackground(Color.black);
@@ -175,7 +178,7 @@ public class GUI extends JFrame {
         table.setRowHeight(30);
         sp.setPreferredSize(new Dimension(250, 600));
         sp.setForeground(Color.black);
-        sp.getViewport().setBackground(Color.PINK);
+        sp.getViewport().setBackground(Color.black);
     
 
         East = new JPanel(new BorderLayout());//(new BorderLayout()); //uses a flow layout
@@ -192,9 +195,10 @@ public class GUI extends JFrame {
         txtArea1.setLineWrap(true); //skips to second line
         txtArea1.setWrapStyleWord(true);
         JScrollPane scrollPane1 = new JScrollPane(txtArea1, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);//adding txt area to scroll pane
+        scrollPane1.getVerticalScrollBar().setBackground(Color.BLACK);
         txtArea1.setFont(fnt2);
-        txtArea1.setForeground(Color.BLACK); //Text colour
-        txtArea1.setBackground(Color.pink);
+        txtArea1.setForeground(Color.pink); //Text colour
+        txtArea1.setBackground(Color.BLACK);
         scrollPane1.setBorder(borderTitle); //adds a border to the scroll pane    
         scrollPane1.setBackground(Color.black);
 //--------------------------------------------------------------------------------------------------------------------
@@ -203,7 +207,7 @@ public class GUI extends JFrame {
         //Setting x,y,width,height positions for GUI features
 //--------------------------------------------------------------------------------------------------------------------
         sendButton.setBounds(410, 150, 120, 50);
-        scrollPane1.setBounds(0, 0, 785, 570);
+        scrollPane1.setBounds(0, 0, 785, 550);
     
      
 
@@ -268,7 +272,7 @@ public class GUI extends JFrame {
     //--------------------------------------------------------------------------------------------------------------------   
 
     //Listeners 
-    public class ListenForButton implements ActionListener {
+    public class ListenForButton implements ActionListener, KeyListener {
 
         Font fnt = new Font("Georgia", Font.PLAIN, 20);
 
@@ -281,7 +285,7 @@ public class GUI extends JFrame {
             if(e.getSource() == menuItem){
                 JOptionPane.showMessageDialog(rootPane, "clicked!");
             }
-//--------------------------------------------------------------------------------------------------------------------
+            //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == clear && txtArea1.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(rootPane, "Already Clear");
             } else if (e.getSource() == clear) {
@@ -315,6 +319,21 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
 
         }//PB actioned performed
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
         
     }//the listener class
 }//Public Class
