@@ -20,6 +20,8 @@ import java.io.*;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -30,6 +32,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -60,7 +64,9 @@ public class FlyInterface extends JFrame implements ActionListener
     FocusVerifier fL = new FocusVerifier();
     Font fnt = new Font("Ariel", Font.PLAIN, 18);
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
+    Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
+    String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo.png";
     public void viewLauncher()
     {
         JMenuBar menuBar = new JMenuBar();
@@ -76,14 +82,36 @@ public class FlyInterface extends JFrame implements ActionListener
         
         JPanel launcherPanel = new JPanel(new BorderLayout());
         
-        JPanel topLabel = new JPanel(new FlowLayout());
+        JPanel topLabel = new JPanel();
+        topLabel.setLayout(new BoxLayout(topLabel, BoxLayout.Y_AXIS));
+        
+        topLabel.add(Box.createVerticalStrut(10));
+        System.out.println(System.getProperty("user.dir"));
+        try
+        {
+            BufferedImage logoPic = ImageIO.read(new File(fLogo));
+            JLabel logoLabel = new JLabel(new ImageIcon(logoPic));
+            logoLabel.setAlignmentX(CENTER_ALIGNMENT);
+            topLabel.add(logoLabel);
+            topLabel.add(Box.createVerticalStrut(10));
+        }
+        catch(Exception e) {}
         
         JLabel introDialog = new JLabel("Welcome to JFly. Please enter a node IP and access port to connect to a cluster.");
         introDialog.setFont(fnt);
         introDialog.setHorizontalAlignment(JLabel.CENTER);
+        introDialog.setAlignmentX(CENTER_ALIGNMENT);
         topLabel.add(Box.createVerticalStrut(10));
         topLabel.add(introDialog);
-        topLabel.add(Box.createVerticalStrut(30));
+        
+        JLabel myLocalIP = new JLabel("<html>Your local IP is: <b>" + JFlyNode.hostAddr() + "</b></html>");
+        myLocalIP.setFont(fntMid);
+        myLocalIP.setHorizontalAlignment(JLabel.CENTER);
+        myLocalIP.setAlignmentX(CENTER_ALIGNMENT);
+        topLabel.add(Box.createVerticalStrut(10));
+        topLabel.add(myLocalIP);
+        
+        topLabel.add(Box.createVerticalStrut(20));
         launcherPanel.add(topLabel, BorderLayout.NORTH);
         
         JPanel launcherOptions = new JPanel();
@@ -148,7 +176,7 @@ public class FlyInterface extends JFrame implements ActionListener
         
         add(launcherPanel);
         
-        setPreferredSize(new Dimension(1000, 400));
+        setPreferredSize(new Dimension(1000, 550));
         pack();
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");

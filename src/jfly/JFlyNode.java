@@ -39,13 +39,17 @@ public class JFlyNode {
         Date date = new Date();
         return date.getTime();
     }
-    public String getUserID()
+    public static String hostAddr()
     {
         try
         {
-            return myNCS.getIDFromIP(java.net.InetAddress.getLocalHost().getHostAddress());
+            return java.net.InetAddress.getLocalHost().getHostAddress();
         }
         catch(Exception e) { return "Retrieval failure"; }
+    }
+    public String getUserID()
+    {
+        return myNCS.getIDFromIP(hostAddr());
     }
     private Boolean pShutdown = false;
     public Boolean shuttingDown()

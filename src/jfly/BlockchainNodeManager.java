@@ -39,6 +39,7 @@ public class BlockchainNodeManager {
     {
         ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
         Stack<String> hashClone = (Stack<String>)hashChain.clone();
+        if(depth < 0) { depth = hashClone.size(); }
         Stack<String> hashCloneReOrder = new Stack<String>();
         for(int i = 0; i < depth; i++)
         {
@@ -193,8 +194,10 @@ public class BlockchainNodeManager {
                     }
                     lastBlockHash = hashChain.peek();
                 }
+                Boolean reinsertTriggered = false; //Maybe rework this mechanism later to be more elegant
                 if(poppedBlocks.size() > 0)
                 {
+                    reinsertTriggered = true;
                     Boolean extPut = false;
                     for(int i = poppedBlocks.size(); i > 0; i--)
                     {
@@ -230,7 +233,7 @@ public class BlockchainNodeManager {
                     System.out.println("Added valid registrar");
                     registrarTolerance--;
                 }
-                calculateConfigs(myNode.getNCS(), lastDepth);
+                calculateConfigs(myNode.getNCS(), reinsertTriggered ? -1 : lastDepth);
                 lastDepth = 0;
                 return 0;
             }
