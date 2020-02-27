@@ -111,6 +111,7 @@ public class JFlyNode {
         @Override
         public void run()
         {
+            Thread.currentThread().setName("Connection autoping thread");
             while(!myNode.shuttingDown())
             {
                 myNode.pingThreads();
@@ -250,7 +251,7 @@ public class JFlyNode {
     }
     public void leaveCluster()
     {
-        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, getUserID());
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(getUserID()));
         closeAll();
     }
     public String[] getLastMessages(int num)
