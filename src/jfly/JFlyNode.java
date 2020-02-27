@@ -109,7 +109,7 @@ public class JFlyNode {
                 myNode.pingThreads();
                 try
                 {
-                    Thread.currentThread().wait(5000);
+                    Thread.sleep(5000);
                 }
                 catch(InterruptedException e) { }
             }
