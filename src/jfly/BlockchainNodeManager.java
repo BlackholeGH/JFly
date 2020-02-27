@@ -99,6 +99,18 @@ public class BlockchainNodeManager {
                 Date mDate = new Date(current.getCreationTime());
                 msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " (" + mDate.toString() + ") : " + current.getContentData());
             }
+            else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
+            {
+                //Date mDate = new Date(current.getCreationTime());
+                String username = myNode.getNCS().getUserNameFromID(current.getOUID());
+                if(current.getHash().equals(myIntroBlockHash) && !myIntroBlockHash.isEmpty()) { username = myNode.getLocalUsername(); }
+                msgs.add(username + " joined this cluster.");
+            }
+            else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
+            {
+                //Date mDate = new Date(current.getCreationTime());
+                msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " left this cluster.");
+            }
         }
         String[] out = new String[msgs.size()];
         for(int i = 0; i < out.length; i++)
@@ -115,6 +127,7 @@ public class BlockchainNodeManager {
     {
         myNode = associatedNode;
     }
+    String myIntroBlockHash = "";
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
@@ -124,7 +137,12 @@ public class BlockchainNodeManager {
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
             myNode.sendJobToThreads(afterAuthorJob, null);
+            if(newBlock.getContentType() == SharedStateBlock.ContentType.USER_JOINED && myIntroBlockHash.isEmpty())
+            {
+                myIntroBlockHash = newBlock.getHash();
+            }
         }
+        myNode.getGUI().remoteSetTextBox(myNode.getLastMessages(50));
         //calculateConfigs(myNode.getNCS(), 1);
     }
     public String tryOneHash()
