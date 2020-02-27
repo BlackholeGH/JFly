@@ -61,7 +61,8 @@ public class JFlyNode {
         Runnable finalShutdownThread = () -> 
         {
             Thread.currentThread().setName("Shutdown cleanup thread");
-            closeAll();
+            if(pingerThread != null) { pingerThread.interrupt(); }
+            leaveCluster();
             pShutdown = true;
             if(receivePool != null)
             {
@@ -72,6 +73,47 @@ public class JFlyNode {
             System.exit(0);
         };
         new Thread(finalShutdownThread).start();
+    }
+    public void pingThreads()
+    {
+        if(ConnectionThreadDirectory.isEmpty()) { return; }
+        threadListLock.lock();
+        try
+        {
+            for(Object o : ConnectionThreadDirectory)
+            {
+                OneLinkThread olt = (OneLinkThread)o;
+                olt.queryReplies();
+            }
+        }
+        finally { threadListLock.unlock(); }
+    }
+    private void startPinger()
+    {
+        pingerThread = new Thread(new pingerRunnable(this));
+        pingerThread.start();
+    }
+    Thread pingerThread = null;
+    private class pingerRunnable implements Runnable
+    {
+        JFlyNode myNode = null;
+        public pingerRunnable(JFlyNode node)
+        {
+            myNode = node;
+        }
+        @Override
+        public void run()
+        {
+            while(!myNode.shuttingDown())
+            {
+                myNode.pingThreads();
+                try
+                {
+                    Thread.currentThread().wait(5000);
+                }
+                catch(InterruptedException e) { }
+            }
+        }
     }
     public void closeAll()
     {
@@ -199,6 +241,11 @@ public class JFlyNode {
         }
         else { return false; }
     }
+    public void leaveCluster()
+    {
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, getUserID());
+        closeAll();
+    }
     public String[] getLastMessages(int num)
     {
         return blockManager.getLast(num);
@@ -306,11 +353,12 @@ public class JFlyNode {
     public void openReceiveAndWait(int myPort) throws IOException
     {
         //new Thread(new GUIThread(this)).start();
+        startPinger();
         myGUI = new GUI(this);
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
-        if(usr == null)
+        if(usr == null || usr.isEmpty())
         {
             usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
         }
@@ -331,6 +379,7 @@ public class JFlyNode {
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
         //new Thread(new GUIThread(this)).start();
+        startPinger();
         myGUI = new GUI(this);
         blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
@@ -411,10 +460,19 @@ public class JFlyNode {
             return mySocket.getInetAddress().getHostAddress() + ":" + mySocket.getPort();
         }
         protected int missed = 0;
-        protected Boolean markedCourtesy = false;
+        protected long markedCourtesy = -1;
         public void queryReplies()
         {
-            if(markedCourtesy) { return; }
+            if(JFlyNode.time() - markedCourtesy > 60)
+            {
+                try
+                {
+                    stop(false);
+                    return;
+                }
+                catch(Exception e) { }
+            }
+            else if(markedCourtesy > 0) { return; }
             ArrayList<String> clonedDL = new ArrayList<String>();
             outputLock.lock();
             try
@@ -481,7 +539,7 @@ public class JFlyNode {
         Boolean introduction = true;
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
-            markedCourtesy = false;
+            markedCourtesy = -1;
             String[] datParts = nextLine.split(":~:", -1);
             if(!datParts[0].equals("JFLYMSGACK"))
             {
@@ -507,7 +565,7 @@ public class JFlyNode {
                     }
                     break;
                 case "JFLYDISCONNECTCOURTESY":
-                    markedCourtesy = true;
+                    markedCourtesy = JFlyNode.time();
                     break;
                 case "JFLYQUESTERREQUEST":
                     if(!jNode.queryAcceptQuester(mySocket.getInetAddress().getHostAddress()))
@@ -579,7 +637,7 @@ public class JFlyNode {
                         if(!introduction)
                         {
                             jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
-                            if(jNode.getLocalUsername() == null)
+                            if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                             {
                                 jNode.setLocalUsername("IP User " + java.net.InetAddress.getLocalHost().getHostAddress());
                             }
@@ -597,7 +655,7 @@ public class JFlyNode {
                 if(!introduction)
                 {
                     jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
-                    if(jNode.getLocalUsername() == null)
+                    if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                     {
                         jNode.setLocalUsername("IP User " + java.net.InetAddress.getLocalHost().getHostAddress());
                     }
@@ -650,6 +708,8 @@ public class JFlyNode {
         public void stop(Boolean skipBlockUnregister) throws IOException
         {
             stopping = true;
+            OutputJobInfo disCourt = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "stopping_disconnect_courtesy", "JFLYDISCONNECTCOURTESY");
+            oneDispatch(disCourt);
             mySocket.close();
             inLine.close();
             jNode.unregisterThread(this, skipBlockUnregister);
