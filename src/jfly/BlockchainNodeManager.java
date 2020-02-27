@@ -81,7 +81,12 @@ public class BlockchainNodeManager {
             }
         }
         cur.reWriteAll(newUsers);
-        System.out.println(cur);
+        GUI myGUI = myNode.getGUI();
+        if(myGUI != null)
+        {
+            myGUI.updateTable(cur.getTableData());
+        }
+        //System.out.println(cur);
     }
     public String[] getLast(int depth)
     {
