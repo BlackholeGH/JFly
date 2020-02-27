@@ -46,10 +46,7 @@ public class GUI extends JFrame {
     ArrayList bob;
     //Jtable Stuff
 //**************************************************************************************
-    String data[][] = {{"x", "x", "x", "x"},
-    {"x", "x", "x", "x"},
-    {"x", "x", "x", "x"},
-    {"x", "x", "x", "x"}};
+    String data[][] = {};
 
     String[] columnNames = {};
 //**************************************************************************************
@@ -164,22 +161,14 @@ public class GUI extends JFrame {
 
         
         //JTable attributes
-//--------------------------------------------------------------------------------------------------------------------      
-        String[] columnNames5 = {"Username", "ID"};//,"f(x(i-1))","f(x(i))","x(i+1)"}; 
-        table = new JTable(data, columnNames5);
-        table.setBackground(Color.black);
-        table.setForeground(Color.pink);
-
-        JTableHeader header = table.getTableHeader(); //for colour
-        header.setBackground(Color.black);
-        header.setForeground(Color.PINK);
+//--------------------------------------------------------------------------------------------------------------------
        
-        sp = new JScrollPane(table); //adding table to the scrollpane
+        sp = new JScrollPane(); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        table.setRowHeight(30);
         sp.setPreferredSize(new Dimension(250, 600));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
+        updateTable(data);
     
 
         East = new JPanel(new BorderLayout());//(new BorderLayout()); //uses a flow layout
@@ -230,31 +219,23 @@ public class GUI extends JFrame {
     }
     //Method to add my values to a Jtable via arraylist
     //--------------------------------------------------------------------------------------------------------------------  
-
-    public void makeTable(JPanel p1, JTable table, JScrollPane sp, ArrayList<Double> array1, ArrayList<Double> array2, ArrayList<Double> array3,
-            Object data[][], String[] Columns) {
-
-        for (int i = 0; i < 5; i++) {
-            data[i][0] = i;
-            data[i][1] = array1.get(i);
-            data[i][2] = array2.get(i);
-            data[i][3] = array3.get(i);
-            //data = (Object[][]) data[i][i];
-
-        }
+    public void updateTable(Object data[][])
+    {
+        updateTable(data, new String[] {"Users", "User IDs"});
+    }
+    
+    public void updateTable(Object data[][], String[] Columns)
+    {
         DefaultTableModel model = new DefaultTableModel(data, Columns);
-
         table = new JTable(model);
-        sp = new JScrollPane(table); //adding table to the scrollpane
-        table.removeAll();
-        p1.removeAll();
-        p1.add(sp);
-        p1.revalidate();
-        p1.repaint();
-        array1.clear();
-        array2.clear();
-        array3.clear();
-
+        table.setBackground(Color.black);
+        table.setForeground(Color.pink);
+        JTableHeader header = table.getTableHeader(); //for colour
+        header.setBackground(Color.black);
+        header.setForeground(Color.PINK);
+        table.setRowHeight(30);
+        table.getColumnModel().getColumn(0).setMinWidth(150);
+        sp.setViewportView(table);
     }
 
     public void remoteSetTextBox(String[] text)

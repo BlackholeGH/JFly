@@ -150,7 +150,8 @@ public class FlyInterface extends JFrame implements ActionListener
         portLabel.setAlignmentX(CENTER_ALIGNMENT);
         launcherOptions.add(portLabel);
         launcherOptions.add(Box.createVerticalStrut(10));
-        JTextField portField = new JTextField("44665", 20);
+        JTextField portField = new JTextField(20);
+        portField.setText("44665");
         portField.setHorizontalAlignment(JTextField.CENTER);
         portField.setMaximumSize(new Dimension(100, 20));
         portField.setActionCommand("setport");

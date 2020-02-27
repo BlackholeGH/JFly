@@ -144,6 +144,18 @@ public class NetworkConfigurationState {
         }
         return out;
     }
+    public String[][] getTableData()
+    {
+        String[][] data = new String[myUsers.size()][2];
+        int i = 0;
+        for(UserInfo ui : myUsers)
+        {
+            data[i][0] = ui.getUserName();
+            data[i][1] = ui.getID();
+            i++;
+        }
+        return data;
+    }
     public NetworkConfigurationState()
     {
                 
