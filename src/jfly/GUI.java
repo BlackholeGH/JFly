@@ -17,7 +17,7 @@ public class GUI extends JFrame {
     //Class references
 //**************************************************************************************
 //    Graph G = new Graph();
-    CommonCode cc = new CommonCode();
+  
 
 //    LinkedList LL = new LinkedList();
 //**************************************************************************************
@@ -48,6 +48,7 @@ public class GUI extends JFrame {
     JTextArea txtArea1;
     JTextArea txtArea2;
     JComboBox FunctionBox;
+    JMenuBar menuBar;
     JComboBox RootBox;
     JPanel mainPanel;
     int buttonClicked;
@@ -102,7 +103,13 @@ public class GUI extends JFrame {
         FunctionBox.addActionListener(lforButton); //adding action listener 
         FunctionBox.setActionCommand("Funcbox"); //adding actionc command for listener to refer to (switch case)
 //****************************************************************************************************************
-
+//****************************************************************************************************************
+        menuBar = new JMenuBar();
+        FunctionBox.setName("Options");
+        FunctionBox.setFont(fnt);
+        FunctionBox.addActionListener(lforButton); //adding action listener 
+        FunctionBox.setActionCommand("menbar"); //adding actionc command for listener to refer to (switch case)
+//****************************************************************************************************************
         //Configuring the Algorithm Jcombobox defined above as class variable
 //****************************************************************************************************************
         RootBox = new JComboBox(rootNames);
@@ -137,8 +144,8 @@ public class GUI extends JFrame {
 
         //creating an icon button using commoncode
 //****************************************************************************************************************
-        button = cc.makeButton("Wizard", "Click me for the graph!", "Graph");
-        button.addActionListener(lforButton);
+//        button = cc.makeButton("Wizard", "Click me for the graph!", "Graph");
+//        button.addActionListener(lforButton);
 //****************************************************************************************************************
 
         //configuring a clear button defined above as a class variable
@@ -284,13 +291,14 @@ public class GUI extends JFrame {
 //--------------------------------------------------------------------------------------------------------------------
         sendButton.setBounds(410, 150, 120, 50);
         calcButton.setBounds(410, 105, 120, 50);
-        button.setBounds(480, 150, 120, 50);
+//        button.setBounds(480, 150, 120, 50);
         FunctionBox.setBounds(0, 0, 200, 50);
         RootBox.setBounds(200, 150, 200, 50);
         label_select_function.setBounds(40, 50, 150, 50);
         label_select_algorithm.setBounds(35, 150, 200, 50);
         scrollPane1.setBounds(0, 45, 785, 525);
         scrollPane2.setBounds(300, 250, 250, 200);
+       menuBar.setBounds(0, 0, 400, 50);
 
 //--------------------------------------------------------------------------------------------------------------------
         //settin up a Jpanel mainPanel as the main panel for things to go into
@@ -311,6 +319,7 @@ public class GUI extends JFrame {
         // mainPanel.add(clear);
         //mainPanel.add(textField1);
         mainPanel.add(scrollPane1);
+        mainPanel.add(menuBar);
         //mainPanel.add(scrollPane2);
         //mainPanel.setVisible(true);
 
