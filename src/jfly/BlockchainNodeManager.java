@@ -102,9 +102,7 @@ public class BlockchainNodeManager {
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 //Date mDate = new Date(current.getCreationTime());
-                String username = myNode.getNCS().getUserNameFromID(current.getOUID());
-                if(current.getHash().equals(myIntroBlockHash) && !myIntroBlockHash.isEmpty()) { username = myNode.getLocalUsername(); }
-                msgs.add(username + " joined this cluster.");
+                msgs.add(myNode.getNCS().getUserNameFromID(SharedStateBlock.getHash(current.getHash())) + " joined this cluster.");
             }
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {

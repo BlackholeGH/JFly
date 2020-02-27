@@ -81,7 +81,7 @@ public class JFlyNode {
             for(Object o : ConnectionThreadDirectory)
             {
                 OneLinkThread olt = (OneLinkThread)o;
-                olt.stop();
+                olt.stop(true);
             }
         }
         catch(IOException e) { System.out.println(e.getMessage()); }
@@ -254,14 +254,14 @@ public class JFlyNode {
         }
         finally { threadListLock.unlock(); }
     }
-    public void unregisterThread(OneLinkThread thread)
+    public void unregisterThread(OneLinkThread thread, Boolean skipBlocking)
     {
-        threadListLock.lock();
+        if(!skipBlocking) { threadListLock.lock(); }
         try
         {
             if(ConnectionThreadDirectory.contains(thread)) { ConnectionThreadDirectory.remove(thread); }
         }
-        finally { threadListLock.unlock(); }
+        finally { if(!skipBlocking) { threadListLock.unlock(); } }
     }
     String usr = null;
     public String getLocalUsername()
@@ -644,12 +644,12 @@ public class JFlyNode {
                 if(stopping) { break; }
             }
         }
-        public void stop() throws IOException
+        public void stop(Boolean skipBlockUnregister) throws IOException
         {
             stopping = true;
             inLine.close();
             mySocket.close();
-            jNode.unregisterThread(this);
+            jNode.unregisterThread(this, skipBlockUnregister);
         }
     }
     public static class ServerStyleThread extends OneLinkThread
@@ -668,7 +668,7 @@ public class JFlyNode {
             {
                 try
                 {
-                    stop();
+                    stop(false);
                 }
                 catch(IOException e2) {}
             }
@@ -693,7 +693,7 @@ public class JFlyNode {
             {
                 try
                 {
-                    stop();
+                    stop(false);
                 }
                 catch(IOException e2) {}
             }
@@ -722,7 +722,7 @@ public class JFlyNode {
                             case "JFLYDISCONNECTCOURTESY":
                                 try
                                 {
-                                    stop();
+                                    stop(false);
                                 }
                                 catch(IOException e) {}
                                 break;
