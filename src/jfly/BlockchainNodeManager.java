@@ -71,7 +71,7 @@ public class BlockchainNodeManager {
                 NetworkConfigurationState.UserInfo oldUser = null;
                 for(NetworkConfigurationState.UserInfo u : newUsers)
                 {
-                    if(u.getID() == newUser.getID())
+                    if(u.getID().equals(newUser.getID()))
                     {
                         oldUser = u;
                         break;
@@ -86,7 +86,7 @@ public class BlockchainNodeManager {
         {
             myGUI.updateTable(cur.getTableData());
         }
-        //System.out.println(cur);
+        System.out.println(cur);
     }
     public String[] getLast(int depth)
     {
