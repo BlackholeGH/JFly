@@ -102,7 +102,7 @@ public class GUI extends JFrame {
         sendButton.addActionListener(lforButton);
 
         exiButton = new JButton();
-        exiButton.setFont(fnt);
+        exiButton.setFont(fnt2);
         exiButton.setToolTipText("Exits the application");
         exiButton.setText("Exit");
         exiButton.addActionListener(lforButton);
