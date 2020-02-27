@@ -488,7 +488,7 @@ public class JFlyNode {
                 clonedDL = (ArrayList<String>)recentDispatchLog.clone();
             }
             finally { outputLock.unlock(); }
-            for(String rec : recentDispatchLog)
+            for(String rec : clonedDL)
             {
                 String[] datSeg = rec.split(Pattern.quote(":~:"), -1);
                 long timeSent = Long.decode(datSeg[0]);

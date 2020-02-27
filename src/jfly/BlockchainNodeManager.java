@@ -60,12 +60,14 @@ public class BlockchainNodeManager {
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
+                if(newUser == null) { continue; }
                 newUser.setID(SharedStateBlock.getHash(current.getHash()));
                 newUsers.add(newUser);
             }
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {
                 NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
+                if(newUser == null) { continue; }
                 NetworkConfigurationState.UserInfo oldUser = null;
                 for(NetworkConfigurationState.UserInfo u : newUsers)
                 {
