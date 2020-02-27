@@ -66,9 +66,19 @@ public class FlyInterface extends JFrame implements ActionListener
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
     Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
-    String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo.png";
+    static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo.png";
+    public static BufferedImage getLogoIcon()
+    {
+        try
+        {
+            BufferedImage logoPic = ImageIO.read(new File(fLogo));
+            return logoPic;
+        }
+        catch(IOException e) { return null; }
+    }
     public void viewLauncher()
     {
+        setIconImage(getLogoIcon());
         JMenuBar menuBar = new JMenuBar();
         JMenu optionsMen = new JMenu();
         //Creating options for the application.
@@ -89,8 +99,7 @@ public class FlyInterface extends JFrame implements ActionListener
         System.out.println(System.getProperty("user.dir"));
         try
         {
-            BufferedImage logoPic = ImageIO.read(new File(fLogo));
-            JLabel logoLabel = new JLabel(new ImageIcon(logoPic));
+            JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon()));
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             topLabel.add(logoLabel);
             topLabel.add(Box.createVerticalStrut(10));

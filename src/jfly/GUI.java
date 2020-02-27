@@ -160,6 +160,7 @@ public class GUI extends JFrame {
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
+        setIconImage(FlyInterface.getLogoIcon());
         TitledBorder borderTitle = BorderFactory.createTitledBorder("Main Chat");
         TitledBorder borderTitle2 = BorderFactory.createTitledBorder("Root Value");
         TitledBorder borderTitle3 = BorderFactory.createTitledBorder("Table Values");
@@ -175,7 +176,7 @@ public class GUI extends JFrame {
         //this makes the mainframe for all the panels to be placed within
         //Configuring up the frame
 //===================================================================================================================
-        mainFrame = new JFrame("Function");
+        mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
         mainFrame.setSize(1050, 700);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
