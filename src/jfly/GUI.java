@@ -155,7 +155,11 @@ public class GUI extends JFrame {
         JPanel South = new JPanel(new BorderLayout()); //uses a flow layout
         South.setBackground(Color.PINK);
         msgBox = new JTextField("");
+        msgBox.setBorder(BorderFactory.createCompoundBorder(msgBox.getBorder(), BorderFactory.createEmptyBorder(0,10,0,0)));
         msgBox.addActionListener(lforButton);
+        msgBox.setBackground(Color.BLACK);
+        msgBox.setForeground(Color.WHITE);
+        msgBox.setFont(fnt2);
         South.add(msgBox);
         mainFrame.add(South, BorderLayout.SOUTH);
 
