@@ -107,7 +107,7 @@ public class FlyInterface extends JFrame implements ActionListener
         JPanel topLabel = new JPanel();
         topLabel.setLayout(new BoxLayout(topLabel, BoxLayout.Y_AXIS));
         
-        topLabel.add(Box.createVerticalStrut(10));
+        topLabel.add(Box.createVerticalStrut(20));
         System.out.println(System.getProperty("user.dir"));
         try
         {
