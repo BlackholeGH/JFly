@@ -175,7 +175,7 @@ public class GUI extends JFrame {
        
         sp = new JScrollPane(); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        sp.setPreferredSize(new Dimension(250, 600));
+        sp.setPreferredSize(new Dimension(260, 600));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
         updateTable(data);
