@@ -223,7 +223,7 @@ public class FlyInterface extends JFrame implements ActionListener
         setVisible(true);  // Needed to ensure that the items can be seen.
     }
     Boolean sharedWarningFlag = false;
-    int targetPort = -1;
+    int targetPort = 44665;
     String targetIP = "";
     @Override
     public void actionPerformed(ActionEvent ae)
