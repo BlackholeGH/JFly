@@ -80,9 +80,17 @@ public class FlyInterface extends JFrame implements ActionListener
         }
         catch(IOException e) { return null; }
     }
+    public static ArrayList<Image> getLogoIcons()
+    {
+        ArrayList<Image> out = new ArrayList();
+        out.add(getLogoIcon(64, 64));
+        out.add(getLogoIcon(32, 32));
+        out.add(getLogoIcon(16, 16));
+        return out;
+    }
     public void viewLauncher()
     {
-        setIconImage(getLogoIcon());
+        setIconImages(getLogoIcons());
         JMenuBar menuBar = new JMenuBar();
         JMenu optionsMen = new JMenu();
         //Creating options for the application.
