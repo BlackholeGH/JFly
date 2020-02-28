@@ -67,6 +67,7 @@ public class FlyInterface extends JFrame implements ActionListener
     Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
     static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo2.png";
+    static String fLogoSimple = System.getProperty("user.dir") + "\\Img\\JFlogoSimplified.png";
     public static Image getLogoIcon()
     {
         return getLogoIcon(50, 50);
@@ -80,12 +81,21 @@ public class FlyInterface extends JFrame implements ActionListener
         }
         catch(IOException e) { return null; }
     }
+    public static Image getSimpleLogoIcon(int width, int height)
+    {
+        try
+        {
+            BufferedImage logoPic = ImageIO.read(new File(fLogoSimple));
+            return logoPic.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        }
+        catch(IOException e) { return null; }
+    }
     public static ArrayList<Image> getLogoIcons()
     {
         ArrayList<Image> out = new ArrayList();
-        out.add(getLogoIcon(64, 64));
-        out.add(getLogoIcon(32, 32));
-        out.add(getLogoIcon(16, 16));
+        out.add(getSimpleLogoIcon(64, 64));
+        out.add(getSimpleLogoIcon(32, 32));
+        out.add(getSimpleLogoIcon(16, 16));
         return out;
     }
     public void viewLauncher()
