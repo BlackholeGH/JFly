@@ -66,13 +66,17 @@ public class FlyInterface extends JFrame implements ActionListener
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
     Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
-    static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo.png";
-    public static BufferedImage getLogoIcon()
+    static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo2.png";
+    public static Image getLogoIcon()
+    {
+        return getLogoIcon(50, 50);
+    }
+    public static Image getLogoIcon(int width, int height)
     {
         try
         {
             BufferedImage logoPic = ImageIO.read(new File(fLogo));
-            return logoPic;
+            return logoPic.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         }
         catch(IOException e) { return null; }
     }
@@ -99,7 +103,7 @@ public class FlyInterface extends JFrame implements ActionListener
         System.out.println(System.getProperty("user.dir"));
         try
         {
-            JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon()));
+            JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon(150, 150)));
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             topLabel.add(logoLabel);
             topLabel.add(Box.createVerticalStrut(10));
@@ -191,7 +195,7 @@ public class FlyInterface extends JFrame implements ActionListener
         
         add(launcherPanel);
         
-        setPreferredSize(new Dimension(1000, 600));
+        setPreferredSize(new Dimension(1000, 650));
         pack();
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
