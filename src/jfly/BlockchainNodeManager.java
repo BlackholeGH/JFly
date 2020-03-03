@@ -88,6 +88,7 @@ public class BlockchainNodeManager {
         {
             myGUI.updateTable(cur.getTableData());
         }
+        System.out.println("Network configuration database updated: ");
         System.out.println(cur);
     }
     public String[] getLast(int depth)
@@ -143,9 +144,9 @@ public class BlockchainNodeManager {
     }
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
+        System.out.println("Attempting to author a new block: " + newContentType.toString() + " : " + newContentData);
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
         int adder = addExtantBlockToChain(newBlock.toString());
-        System.out.println("Block author status: " + adder);
         if(adder == 0 || adder == 1)
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
@@ -440,7 +441,6 @@ public class BlockchainNodeManager {
         public String selfInitialize(String initData)
         {
             String[] dataSegs = initData.split("\\|", -1);
-            System.out.println(initData);
             localPrevBlockHash = dataSegs[0];
             updateTime = Long.parseLong(dataSegs[1]);
             originatingUserID = dataSegs[2];

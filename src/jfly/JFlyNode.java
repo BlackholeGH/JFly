@@ -665,7 +665,7 @@ public class JFlyNode {
                         }
                         else
                         {
-                            
+                            jNode.setDefaultAddress(datParts[1].split(Pattern.quote(":"))[1]);
                         }
                     }
                     outputLock.lock();
@@ -803,7 +803,7 @@ public class JFlyNode {
                 try
                 {
                     String received = inLine.nextLine();
-                    System.out.println(received);
+                    System.out.println("Data received: " + received);
                     try
                     {
                         try
