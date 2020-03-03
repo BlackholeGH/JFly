@@ -673,7 +673,8 @@ public class JFlyNode {
                         {
                             NetworkConfigurationState.UserInfo oldMe = jNode.myNCS.getUserFromID(jNode.getUserID());
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, oldMe.toString());
-                            NetworkConfigurationState.UserInfo newMe = new NetworkConfigurationState.UserInfo(datParts[1].split(Pattern.quote(":"))[1], "", oldMe.getUserName());
+                            String newIP = datParts[1].split(Pattern.quote(":"))[1];
+                            NetworkConfigurationState.UserInfo newMe = new NetworkConfigurationState.UserInfo(newIP, "", oldMe.getUserName().replace(jNode.hostAddr(), newIP));
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, newMe.toString());
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.SYSTEM_UTIL, newMe.getUserName() + " has become an internetworked node.");
                         }
