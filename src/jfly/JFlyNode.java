@@ -647,7 +647,7 @@ public class JFlyNode {
             String[] datParts = nextLine.split(":~:", -1);
             if(!datParts[0].equals("JFLYMSGACK"))
             {
-                OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
+                OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
                 oneDispatch(ack);
             }
             switch(datParts[0])               
@@ -907,7 +907,7 @@ public class JFlyNode {
                         String[] datParts = received.split(":~:", -1);
                         if(!datParts[0].equals("JFLYMSGACK"))
                         {
-                            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
+                            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
                             oneDispatch(ack);
                         }
                         switch(datParts[0])               
