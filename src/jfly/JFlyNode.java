@@ -283,7 +283,8 @@ public class JFlyNode {
     }
     public synchronized String tryOneBlock(String data)
     {
-        int attemptAdd = blockManager.addExtantBlockToChain(data);
+        Object[] trueAddReturn = blockManager.addExtantBlockToChain(data);
+        int attemptAdd = (int)trueAddReturn[0];
         if(attemptAdd == 2)
         {
             return "FAILED_REQUEST_PREVIOUS";
@@ -291,7 +292,7 @@ public class JFlyNode {
         else if(attemptAdd == 0 || attemptAdd == 1)
         {
 
-            return "SUCCESSFULLY_INTEGRATED";
+            return "SUCCESSFULLY_INTEGRATED:" + (String)trueAddReturn[1];
         }
         else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
         else { return "FAILED_OTHER_UNSPECIFIED"; }
@@ -306,10 +307,16 @@ public class JFlyNode {
                 OneLinkThread trueThread = (OneLinkThread)thread;
                 if(blacklist != null)
                 {
+                    Boolean skip = false;
                     for(OneLinkThread blackThread : blacklist)
                     {
-                        if(blackThread == trueThread) { continue; }
+                        if(blackThread == trueThread)
+                        { 
+                            skip = true;
+                            break;
+                        }
                     }
+                    if(skip) { continue; }
                 }
                 trueThread.oneDispatch(job);
             }
@@ -762,7 +769,7 @@ public class JFlyNode {
                         else { receivedDuringBlocking.add(received); }
                     }
                     String secondResult = jNode.tryOneBlock(datParts[1]);
-                    if(!secondResult.equals("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
+                    if(!secondResult.contains("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
                     else
                     {
                         if(!introduction)
@@ -776,12 +783,12 @@ public class JFlyNode {
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                             introduction = true;
                         }
-                        doPanthreadDispatch(datParts[1], datParts[0]);
+                        doPanthreadDispatch(jNode.blockManager.getByHash(result.replace("SUCCESSFULLY_INTEGRATED:", "")), datParts[0]);
                     }
                 }
                 finally { outputLock.unlock(); }
             }
-            else if(result.equals("SUCCESSFULLY_INTEGRATED"))
+            else if(result.contains("SUCCESSFULLY_INTEGRATED"))
             {
                 if(!introduction)
                 {
@@ -794,7 +801,7 @@ public class JFlyNode {
                     jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                     introduction = true;
                 }
-                doPanthreadDispatch(datParts[1], datParts[0]);
+                doPanthreadDispatch(jNode.blockManager.getByHash(result.replace("SUCCESSFULLY_INTEGRATED:", "")), datParts[0]);
             }
             while(!recursive && receivedDuringBlocking.size() > 0)
             {

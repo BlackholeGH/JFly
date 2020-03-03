@@ -150,7 +150,8 @@ public class BlockchainNodeManager {
     {
         System.out.println("Attempting to author a new block: " + newContentType.toString() + " : " + newContentData);
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
-        int adder = addExtantBlockToChain(newBlock.toString());
+        Object[] authorRes = addExtantBlockToChain(newBlock.toString());
+        int adder = (int)authorRes[0];
         if(adder == 0 || adder == 1)
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
@@ -188,7 +189,7 @@ public class BlockchainNodeManager {
     {
         registrarTolerance += incr;
     }
-    public int addExtantBlockToChain(String blockData)
+    public Object[] addExtantBlockToChain(String blockData)
     {
         SharedStateBlock extBlock = new SharedStateBlock(this);
         try
@@ -204,7 +205,7 @@ public class BlockchainNodeManager {
                 {
                     calculateConfigs(myNode.getNCS(), lastDepth);
                     lastDepth = 0;
-                    return 4;
+                    return new Object[] { 4, extBlock.getHash() };
                 }
                 String lastBlockHash = lastHash();
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
@@ -223,7 +224,7 @@ public class BlockchainNodeManager {
                         }
                         calculateConfigs(myNode.getNCS(), lastDepth);
                         lastDepth = 0;
-                        return 2;
+                        return new Object[] { 2, extBlock.getHash() };
                     }
                     if(lastBlockHash.length() > 0)
                     {
@@ -296,7 +297,7 @@ public class BlockchainNodeManager {
                 calculateConfigs(myNode.getNCS(), reinsertTriggered ? -1 : lastDepth);
                 lastDepth = 0;
                 if(reinsertTriggered) { System.out.println("Finished retrival chaining and putting..."); }
-                return 0;
+                return new Object[] { 0, extBlock.getHash() };
             }
             else
             {
@@ -312,14 +313,14 @@ public class BlockchainNodeManager {
                 }
                 calculateConfigs(myNode.getNCS(), lastDepth);
                 lastDepth = 0;
-                return 1;
+                return new Object[] { 1, extBlock.getHash() };
             }
         }
         else
         {
             calculateConfigs(myNode.getNCS(), lastDepth);
             lastDepth = 0;
-            return 3;
+            return new Object[] { 3, extBlock.getHash() };
         }
     }
     public static class SharedStateBlock
