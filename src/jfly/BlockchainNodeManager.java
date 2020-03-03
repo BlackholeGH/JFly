@@ -236,7 +236,7 @@ public class BlockchainNodeManager {
                 Boolean reinsertTriggered = false; //Maybe rework this mechanism later to be more elegant
                 if(poppedBlocks.size() > 0)
                 {
-                    System.out.println("Performing retrieval chain:");
+                    System.out.println("Performing retrieval chain (ebct = " + extBlock.getCreationTime() + "):");
                     reinsertTriggered = true;
                     Boolean extPut = false;
                     for(int i = poppedBlocks.size(); i > 0; i--)
@@ -252,6 +252,7 @@ public class BlockchainNodeManager {
                         curReInsert.setLastBlockHash(lastBlockHash);
                         if(!extPut && ((extBlock.getCreationTime() < curReInsert.getCreationTime()) || (extBlock.getCreationTime() == curReInsert.getCreationTime() && comparisonHash.compareTo(curReInsert.getHash()) < 0)))
                         {
+                            System.out.println("Putting extblock");
                             lastDepth++;
                             lastBlockHash = extBlock.getHash();
                             hashChain.add(lastBlockHash);
@@ -266,6 +267,17 @@ public class BlockchainNodeManager {
                         hashChain.add(lastBlockHash);
                         sharedStateBlocks.put(lastBlockHash, curReInsert);
                         System.out.println(curReInsert.toString());
+                    }
+                    if(!extPut)
+                    {
+                        System.out.println("Putting extblock");
+                        extBlock.setLastBlockHash(lastBlockHash);
+                        lastDepth++;
+                        lastBlockHash = extBlock.getHash();
+                        hashChain.add(lastBlockHash);
+                        sharedStateBlocks.put(lastBlockHash, extBlock);
+                        extPut = true;
+                        System.out.println(extBlock.toString());
                     }
                 }
                 else
