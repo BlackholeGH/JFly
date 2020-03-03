@@ -1,6 +1,7 @@
 package jfly;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.peer.LightweightPeer;
 import java.util.ArrayList;
 import java.text.DecimalFormat;
 
@@ -36,7 +37,11 @@ public class GUI extends JFrame {
     JMenuBar menuBar;
     JPanel mainPanel;
     JMenuItem menuItem;
+    JMenuItem menuItem2;
     DecimalFormat decimalFormat;
+    Color white = Color.WHITE;
+    Color black = Color.BLACK;
+    
 //**************************************************************************************
 
 //**************************************************************************************
@@ -74,6 +79,19 @@ public class GUI extends JFrame {
         model();
         view();
     }
+    public void setdarkcolor() {
+        setBackground(black);
+        Title.setForeground(Color.black);
+        Title.setForeground(Color.yellow);
+        msgBox.setBackground(Color.yellow);
+        sp.setForeground(Color.yellow);
+
+    }
+
+    public void setlightcolor(String light, String dark) {
+        setBackground(white);
+
+    }
 
     ListenForButton lforButton = new ListenForButton();
     private void model() { //creating an object for action listener
@@ -86,9 +104,11 @@ public class GUI extends JFrame {
         menuBar = new JMenuBar();
         JMenu menu  = new JMenu("Options");
         menu.setFont(fnt);
-        menuItem  = new JMenuItem("Option1");
+        menuItem  = new JMenuItem("LightMode");
+        menuItem2 = new JMenuItem("DarkMode");
         menuItem.addActionListener(lforButton);
         menu.add(menuItem);
+        menu.add(menuItem2);
         menuBar.add(menu);
         
         
@@ -106,10 +126,14 @@ public class GUI extends JFrame {
         exiButton.setToolTipText("Exits the application");
         exiButton.setText("Exit");
         exiButton.addActionListener(lforButton);
+        
+        
 
     }
 
     private void view() {
+        
+        
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
@@ -276,6 +300,8 @@ public class GUI extends JFrame {
             //button to clear jtext1
             if(e.getSource() == menuItem){
                 JOptionPane.showMessageDialog(rootPane, "clicked!");
+                setdarkcolor();
+                
             }
             //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == clear && txtArea1.getText().isEmpty()) {
