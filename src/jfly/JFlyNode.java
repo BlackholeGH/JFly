@@ -38,11 +38,24 @@ public class JFlyNode {
         Date date = new Date();
         return date.getTime();
     }
-    public static String hostAddr()
+    private String recordedHostAddress = "";
+    public void resetAddress(String addr, BlockchainNodeManager myManager)
+    {
+        if(myManager == blockManager) { recordedHostAddress = addr; }
+    }
+    public void setDefaultAddress(String addr)
+    {
+        if(recordedHostAddress.isEmpty())
+        {
+            recordedHostAddress = addr;
+        }
+    }
+    public String hostAddr()
     {
         try
         {
-            return java.net.InetAddress.getLocalHost().getHostAddress();
+            if(recordedHostAddress.isEmpty()) { return java.net.InetAddress.getLocalHost().getHostAddress(); }
+            else { return recordedHostAddress; }
         }
         catch(Exception e) { return "Retrieval failure"; }
     }
@@ -432,9 +445,9 @@ public class JFlyNode {
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
         if(usr == null || usr.isEmpty())
         {
-            usr = "IP User " + java.net.InetAddress.getLocalHost().getHostAddress();
+            usr = "IP User " + hostAddr();
         }
-        NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", usr);
+        NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(hostAddr(), "", usr);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
@@ -634,12 +647,27 @@ public class JFlyNode {
             String[] datParts = nextLine.split(":~:", -1);
             if(!datParts[0].equals("JFLYMSGACK"))
             {
-                OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack", "JFLYMSGACK");
+                OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
                 oneDispatch(ack);
             }
             switch(datParts[0])               
             {
                 case "JFLYMSGACK":
+                    if(!datParts[1].split(Pattern.quote(":"))[1].equals(jNode.hostAddr()))
+                    {
+                        if(introduction)
+                        {
+                            NetworkConfigurationState.UserInfo oldMe = jNode.myNCS.getUserFromID(jNode.getUserID());
+                            jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, oldMe.toString());
+                            NetworkConfigurationState.UserInfo newMe = new NetworkConfigurationState.UserInfo(datParts[1].split(Pattern.quote(":"))[1], "", oldMe.getUserName());
+                            jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, newMe.toString());
+                            jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.SYSTEM_UTIL, newMe.getUserName() + " has become an internetworked node.");
+                        }
+                        else
+                        {
+                            
+                        }
+                    }
                     outputLock.lock();
                     try
                     {
@@ -730,9 +758,9 @@ public class JFlyNode {
                             jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
                             if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                             {
-                                jNode.setLocalUsername("IP User " + java.net.InetAddress.getLocalHost().getHostAddress());
+                                jNode.setLocalUsername("IP User " + jNode.hostAddr());
                             }
-                            NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", jNode.getLocalUsername());
+                            NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(jNode.hostAddr(), "", jNode.getLocalUsername());
                             jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                             introduction = true;
                         }
@@ -748,9 +776,9 @@ public class JFlyNode {
                     jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
                     if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                     {
-                        jNode.setLocalUsername("IP User " + java.net.InetAddress.getLocalHost().getHostAddress());
+                        jNode.setLocalUsername("IP User " + jNode.hostAddr());
                     }
-                    NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(java.net.InetAddress.getLocalHost().getHostAddress(), "", jNode.getLocalUsername());
+                    NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(jNode.hostAddr(), "", jNode.getLocalUsername());
                     jNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                     introduction = true;
                 }
@@ -816,6 +844,8 @@ public class JFlyNode {
                 mySocket = myAcceptedConnection;
                 inLine = new Scanner(mySocket.getInputStream());
                 outLine = new PrintWriter(mySocket.getOutputStream(), true);
+                OutputJobInfo oneAck = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
+                oneDispatch(oneAck);
                 myNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GROUP_REGISTRAR, myNode.getNCS().getRegistrar());
             }
             catch(IOException e)
@@ -875,6 +905,11 @@ public class JFlyNode {
                     {
                         String received = inLine.nextLine();
                         String[] datParts = received.split(":~:", -1);
+                        if(!datParts[0].equals("JFLYMSGACK"))
+                        {
+                            OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
+                            oneDispatch(ack);
+                        }
                         switch(datParts[0])               
                         {
                             case "JFLYTRANSIENT":

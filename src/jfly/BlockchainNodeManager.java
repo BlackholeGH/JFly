@@ -120,6 +120,11 @@ public class BlockchainNodeManager {
                 //Date mDate = new Date(current.getCreationTime());
                 msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " left this cluster.");
             }
+            else if(current.getContentType() == SharedStateBlock.ContentType.SYSTEM_UTIL)
+            {
+                //Date mDate = new Date(current.getCreationTime());
+                msgs.add(current.getContentData());
+            }
         }
         String[] out = new String[msgs.size()];
         for(int i = 0; i < out.length; i++)
@@ -136,7 +141,6 @@ public class BlockchainNodeManager {
     {
         myNode = associatedNode;
     }
-    String myIntroBlockHash = "";
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
@@ -146,9 +150,10 @@ public class BlockchainNodeManager {
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
             myNode.sendJobToThreads(afterAuthorJob, null);
-            if(newBlock.getContentType() == SharedStateBlock.ContentType.USER_JOINED && myIntroBlockHash.isEmpty())
+            if(newBlock.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
-                myIntroBlockHash = newBlock.getHash();
+                NetworkConfigurationState.UserInfo authoredUser = NetworkConfigurationState.UserInfo.fromString(newBlock.getContentData());
+                myNode.resetAddress(authoredUser.getIP(), this);
             }
         }
         GUI myGUI = myNode.getGUI();

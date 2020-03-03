@@ -135,7 +135,7 @@ public class FlyInterface extends JFrame implements ActionListener
         topLabel.add(Box.createVerticalStrut(10));
         topLabel.add(introDialog);
         
-        JLabel myLocalIP = new JLabel("<html>Your local IP is: <b>" + JFlyNode.hostAddr() + "</b></html>");
+        JLabel myLocalIP = new JLabel("<html>Your local IP is: <b>" + myNode.hostAddr() + "</b></html>");
         myLocalIP.setFont(fntMid);
         myLocalIP.setHorizontalAlignment(JLabel.CENTER);
         myLocalIP.setAlignmentX(CENTER_ALIGNMENT);

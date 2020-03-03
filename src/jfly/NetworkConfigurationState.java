@@ -107,6 +107,14 @@ public class NetworkConfigurationState {
         }
         return "Unknown User";
     }
+    public UserInfo getUserFromID(String iD)
+    {
+        for(UserInfo ui : myUsers)
+        {
+            if(ui.getID().equals(iD)) { return ui; }
+        }
+        return null;
+    }
     public String getIDFromIP(String iP)
     {
         for(UserInfo ui : myUsers)
