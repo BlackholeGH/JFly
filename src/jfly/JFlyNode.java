@@ -844,7 +844,7 @@ public class JFlyNode {
                 mySocket = myAcceptedConnection;
                 inLine = new Scanner(mySocket.getInputStream());
                 outLine = new PrintWriter(mySocket.getOutputStream(), true);
-                OutputJobInfo oneAck = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress(), "JFLYMSGACK");
+                OutputJobInfo oneAck = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
                 oneDispatch(oneAck);
                 myNode.blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GROUP_REGISTRAR, myNode.getNCS().getRegistrar());
             }

@@ -88,7 +88,7 @@ public class BlockchainNodeManager {
         {
             myGUI.updateTable(cur.getTableData());
         }
-        System.out.println("Network configuration database updated: ");
+        System.out.println("Network configuration database updated (Depth of " + depth + "): ");
         System.out.println(cur);
     }
     public String[] getLast(int depth)
@@ -206,6 +206,7 @@ public class BlockchainNodeManager {
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
                 {
+                    System.out.println("Performing retrieval chain.");
                     if(hashChain.size() == 1)
                     {
                         for(int i = poppedBlocks.size(); i > 0; i--)
