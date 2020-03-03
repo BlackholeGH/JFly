@@ -636,16 +636,23 @@ public class JFlyNode {
         }
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
-            markedCourtesy = -1;
-            missed = 0;
-            outputLock.lock();
-            try
+            performNextLineOperation(nextLine, false);
+        }
+        protected void performNextLineOperation(String nextLine, Boolean recursive) throws RemoteBlockIntegrationException, UnknownHostException
+        {
+            if(!recursive)
             {
-                recentDispatchLog.clear();
+                markedCourtesy = -1;
+                missed = 0;
+                outputLock.lock();
+                try
+                {
+                    recentDispatchLog.clear();
+                }
+                finally { outputLock.unlock(); }
             }
-            finally { outputLock.unlock(); }
             String[] datParts = nextLine.split(":~:", -1);
-            if(!datParts[0].equals("JFLYMSGACK"))
+            if(!datParts[0].equals("JFLYMSGACK") && !recursive)
             {
                 OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
                 oneDispatch(ack);
@@ -704,7 +711,7 @@ public class JFlyNode {
                     }
                     break;
                 case "JFLYCHAINBLOCK":                  
-                    handleNewBlock(nextLine, datParts);
+                    handleNewBlock(nextLine, datParts, recursive);
                     break;
                 case "JFLYCHAINBLOCKREQUEST":
                     String search = jNode.pullOneBlockByHash(datParts[1]);
@@ -722,9 +729,14 @@ public class JFlyNode {
             }
             jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
         }
+        LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
         protected void handleNewBlock(String nextLine, String[] datParts) throws RemoteBlockIntegrationException, UnknownHostException
         {
-            LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
+            handleNewBlock(nextLine, datParts, false);
+        }
+        protected void handleNewBlock(String nextLine, String[] datParts, Boolean recursive) throws RemoteBlockIntegrationException, UnknownHostException
+        {
+            if(!recursive) { receivedDuringBlocking = new LinkedList<String>(); }
             String result = jNode.tryOneBlock(datParts[1]);
             if(result.equals("FAILED_REQUEST_PREVIOUS"))
             {
@@ -744,7 +756,7 @@ public class JFlyNode {
                             {
                                 throw new RemoteBlockIntegrationException("BLOCK_HASH_NOT_FOUND", RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest);
                             }
-                            else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2]); }
+                            else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2], true); }
                             break;
                         }
                         else { receivedDuringBlocking.add(received); }
@@ -784,7 +796,7 @@ public class JFlyNode {
                 }
                 doPanthreadDispatch(datParts[1], datParts[0]);
             }
-            while(receivedDuringBlocking.size() > 0)
+            while(!recursive && receivedDuringBlocking.size() > 0)
             {
                 performNextLineOperation(receivedDuringBlocking.pop());
             }
