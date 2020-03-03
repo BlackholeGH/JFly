@@ -83,12 +83,6 @@ public class JFlyNode {
             {
                 ctdCopy = (ArrayList)ConnectionThreadDirectory.clone();
             }
-            else if(!expectNoThreads)
-            {
-                JOptionPane.showMessageDialog(null, "You have no open threads on this node and are not connected to a cluster. The chat application will close.");
-                shutdownNode();
-                return;
-            }
         }
         finally { threadListLock.unlock(); }
         if(ctdCopy != null)
@@ -429,10 +423,8 @@ public class JFlyNode {
         }
     }
     private ExecutorService receivePool = null;
-    private Boolean expectNoThreads = false;
     public void openReceiveAndWait(int myPort) throws IOException
     {
-        expectNoThreads = true;
         startPinger();
         myGUI = new GUI(this);
         if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
@@ -447,7 +439,6 @@ public class JFlyNode {
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myPort)) {
             while (!shuttingDown()) {
-                expectNoThreads = false;
                 receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
         }
