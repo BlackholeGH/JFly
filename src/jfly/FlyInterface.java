@@ -66,19 +66,41 @@ public class FlyInterface extends JFrame implements ActionListener
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
     Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
-    static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo.png";
-    public static BufferedImage getLogoIcon()
+    static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo2.png";
+    static String fLogoSimple = System.getProperty("user.dir") + "\\Img\\JFlogoSimplified.png";
+    public static Image getLogoIcon()
+    {
+        return getLogoIcon(50, 50);
+    }
+    public static Image getLogoIcon(int width, int height)
     {
         try
         {
             BufferedImage logoPic = ImageIO.read(new File(fLogo));
-            return logoPic;
+            return logoPic.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         }
         catch(IOException e) { return null; }
     }
+    public static Image getSimpleLogoIcon(int width, int height)
+    {
+        try
+        {
+            BufferedImage logoPic = ImageIO.read(new File(fLogoSimple));
+            return logoPic.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        }
+        catch(IOException e) { return null; }
+    }
+    public static ArrayList<Image> getLogoIcons()
+    {
+        ArrayList<Image> out = new ArrayList();
+        out.add(getSimpleLogoIcon(64, 64));
+        out.add(getSimpleLogoIcon(32, 32));
+        out.add(getSimpleLogoIcon(16, 16));
+        return out;
+    }
     public void viewLauncher()
     {
-        setIconImage(getLogoIcon());
+        setIconImages(getLogoIcons());
         JMenuBar menuBar = new JMenuBar();
         JMenu optionsMen = new JMenu();
         //Creating options for the application.
@@ -95,11 +117,11 @@ public class FlyInterface extends JFrame implements ActionListener
         JPanel topLabel = new JPanel();
         topLabel.setLayout(new BoxLayout(topLabel, BoxLayout.Y_AXIS));
         
-        topLabel.add(Box.createVerticalStrut(10));
+        topLabel.add(Box.createVerticalStrut(20));
         System.out.println(System.getProperty("user.dir"));
         try
         {
-            JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon()));
+            JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon(150, 150)));
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             topLabel.add(logoLabel);
             topLabel.add(Box.createVerticalStrut(10));
@@ -191,7 +213,7 @@ public class FlyInterface extends JFrame implements ActionListener
         
         add(launcherPanel);
         
-        setPreferredSize(new Dimension(1000, 600));
+        setPreferredSize(new Dimension(1000, 650));
         pack();
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
@@ -201,7 +223,7 @@ public class FlyInterface extends JFrame implements ActionListener
         setVisible(true);  // Needed to ensure that the items can be seen.
     }
     Boolean sharedWarningFlag = false;
-    int targetPort = -1;
+    int targetPort = 44665;
     String targetIP = "";
     @Override
     public void actionPerformed(ActionEvent ae)

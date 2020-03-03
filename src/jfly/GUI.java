@@ -126,7 +126,7 @@ public class GUI extends JFrame {
         //Configuring up the frame
 //===================================================================================================================
         mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
-        mainFrame.setIconImage(FlyInterface.getLogoIcon());
+        mainFrame.setIconImages(FlyInterface.getLogoIcons());
         mainFrame.setSize(1050, 700);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
@@ -142,11 +142,17 @@ public class GUI extends JFrame {
 //===================================================================================================================
         JPanel north = new JPanel(new BorderLayout()); //used a flow layout
         north.setBackground(Color.pink);
+        JPanel inNorth = new JPanel(new FlowLayout());
+        inNorth.setBackground(Color.pink);
+        JLabel logo = new JLabel(new ImageIcon(FlyInterface.getLogoIcon(40, 40)));
+        logo.setHorizontalAlignment(JLabel.RIGHT);
+        inNorth.add(logo);
         Title = new JLabel("JFly");
         Title.setFont(fnt3);
         Title.setForeground(Color.black);
-        Title.setHorizontalAlignment(JLabel.CENTER);
-        north.add(Title, BorderLayout.CENTER);       
+        Title.setHorizontalAlignment(JLabel.LEFT);
+        inNorth.add(Title);
+        north.add(inNorth, BorderLayout.CENTER);
         mainFrame.add(north, BorderLayout.NORTH);
 //===================================================================================================================
 
@@ -169,7 +175,7 @@ public class GUI extends JFrame {
        
         sp = new JScrollPane(); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        sp.setPreferredSize(new Dimension(250, 600));
+        sp.setPreferredSize(new Dimension(260, 600));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
         updateTable(data);
