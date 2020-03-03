@@ -210,7 +210,7 @@ public class BlockchainNodeManager {
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
                 {
-                    System.out.println("Performing retrieval chain.");
+                    System.out.println("Popping block...");
                     if(hashChain.size() == 1)
                     {
                         for(int i = poppedBlocks.size(); i > 0; i--)
@@ -236,14 +236,21 @@ public class BlockchainNodeManager {
                 Boolean reinsertTriggered = false; //Maybe rework this mechanism later to be more elegant
                 if(poppedBlocks.size() > 0)
                 {
+                    System.out.println("Performing retrieval chain:");
                     reinsertTriggered = true;
                     Boolean extPut = false;
                     for(int i = poppedBlocks.size(); i > 0; i--)
                     {
                         SharedStateBlock curReInsert = poppedBlocks.pop();
-                        if(!extPut) { extBlock.setLastBlockHash(lastBlockHash); }
+                        String comparisonHash = "";
+                        if(!extPut)
+                        {
+                            extBlock.setLastBlockHash("");
+                            comparisonHash = extBlock.getHash();
+                            extBlock.setLastBlockHash(lastBlockHash);
+                        }
                         curReInsert.setLastBlockHash(lastBlockHash);
-                        if(!extPut && ((extBlock.getCreationTime() < curReInsert.getCreationTime()) || (extBlock.getCreationTime() == curReInsert.getCreationTime() && extBlock.getHash().compareTo(curReInsert.getHash()) < 0)))
+                        if(!extPut && ((extBlock.getCreationTime() < curReInsert.getCreationTime()) || (extBlock.getCreationTime() == curReInsert.getCreationTime() && comparisonHash.compareTo(curReInsert.getHash()) < 0)))
                         {
                             lastDepth++;
                             lastBlockHash = extBlock.getHash();
@@ -251,12 +258,14 @@ public class BlockchainNodeManager {
                             sharedStateBlocks.put(lastBlockHash, extBlock);
                             curReInsert.setLastBlockHash(lastBlockHash);
                             extPut = true;
+                            System.out.println(extBlock.toString());
                         }
-                        if(!extPut && extBlock.getHash().compareTo(curReInsert.getHash()) == 0) { System.out.println("Warning: Unexpected hash collision during blockchain insertion(?!)."); }
+                        if(!extPut && comparisonHash.compareTo(curReInsert.getHash()) == 0) { System.out.println("Warning: Unexpected hash collision during blockchain insertion(?!)."); }
                         lastDepth++;
                         lastBlockHash = curReInsert.getHash();
                         hashChain.add(lastBlockHash);
                         sharedStateBlocks.put(lastBlockHash, curReInsert);
+                        System.out.println(curReInsert.toString());
                     }
                 }
                 else
@@ -274,6 +283,7 @@ public class BlockchainNodeManager {
                 }
                 calculateConfigs(myNode.getNCS(), reinsertTriggered ? -1 : lastDepth);
                 lastDepth = 0;
+                if(reinsertTriggered) { System.out.println("Finished retrival chaining and putting..."); }
                 return 0;
             }
             else
