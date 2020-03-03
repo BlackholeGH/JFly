@@ -41,7 +41,11 @@ public class BlockchainNodeManager {
     {
         ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
         Stack<String> hashClone = (Stack<String>)hashChain.clone();
-        if(depth < 0) { depth = hashClone.size(); }
+        if(depth < 0)
+        {
+            depth = hashClone.size();
+            newUsers.clear();
+        }
         Stack<String> hashCloneReOrder = new Stack<String>();
         for(int i = 0; i < depth; i++)
         {
