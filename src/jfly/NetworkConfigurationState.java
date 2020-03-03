@@ -132,6 +132,15 @@ public class NetworkConfigurationState {
         }
         return newUsers;
     }
+    public ArrayList<String> getUserIDs()
+    {
+        ArrayList<String> users = new ArrayList<String>();
+        for(UserInfo ui : myUsers)
+        {
+            users.add(ui.getID());
+        }
+        return users;
+    }
     @Override
     public String toString()
     {

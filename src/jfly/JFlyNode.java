@@ -22,16 +22,15 @@ import java.util.LinkedList;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Hashtable;
 import java.util.regex.Pattern;
 /**
  *
  * @author Blackhole
  * TO DO:
  * Let socket connections time out and dispose the thread if so as unsuccessful
- * issueExistenceTransient()
- * crossNetworkSeekNode(), including returning existence transient listening, and issuing disconnect notif if not found, from some check in queryReplies()?
- * Actual transient handling
  */
 public class JFlyNode {
     public static long time()
@@ -84,6 +83,12 @@ public class JFlyNode {
             {
                 ctdCopy = (ArrayList)ConnectionThreadDirectory.clone();
             }
+            else
+            {
+                JOptionPane.showMessageDialog(null, "You have no open threads on this node and are not connected to a cluster. The chat application will close.");
+                shutdownNode();
+                return;
+            }
         }
         finally { threadListLock.unlock(); }
         if(ctdCopy != null)
@@ -115,6 +120,7 @@ public class JFlyNode {
             while(!myNode.shuttingDown())
             {
                 myNode.pingThreads();
+                crossNetworkSeekNode("");
                 try
                 {
                     Thread.sleep(5000);
@@ -353,9 +359,74 @@ public class JFlyNode {
             launcher = null;
         }
     }
+    //Insecure without verification hashing with 2-key encryption. Idea for later?
     public void issueExistenceTransient()
     {
-        
+        String transientBody = "responseping+-+" + getUserID();
+        OutputJobInfo existTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
+        sendJobToThreads(existTransient, null);
+    }
+    private Hashtable seekers = new Hashtable();
+    private final int seekTolerance = 20000;
+    private final int contactTolerance = 20000;
+    public synchronized void crossNetworkSeekNode(String userIDorResponseTransient)
+    {
+        if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
+        {
+            String findUsrID = (userIDorResponseTransient.split(":~:", -1)[1]).split("+-+", -1)[1];
+            if(seekers.containsKey(findUsrID))
+            {
+                seekers.put(findUsrID, "RESPONSE_RECEIVED|RESPONSE_RECEIVED");
+            }
+        }
+        else if(userIDorResponseTransient.startsWith("USERHASHID"))
+        {
+            String userHashID = userIDorResponseTransient.replaceAll("USERHASHID|", "");
+            if(!seekers.containsKey(usr) || (seekers.containsKey(usr) && seekers.get(usr).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
+            {
+                seekers.put("SEEK|" + usr, time());
+                String transientBody = "seeking+-+" + getUserID();
+                OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
+                sendJobToThreads(seekingTransient, null);
+            }
+        }
+        else
+        {
+            for(Object hashIDo : seekers.keySet())
+            {
+                String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
+                String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
+                long seekTime = (long)seekers.get(hashID);
+                if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
+                {
+                    seekers.put("CONTACT|" + usr, time());
+                    String transientBody = "forcecontact+-+" + getUserID();
+                    OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
+                    sendJobToThreads(seekingTransient, null);
+                }
+                else if(time() - seekTime > contactTolerance)
+                {
+                    seekers.remove(hashID);
+                    issueTimeout(hashID);
+                }
+            }
+        }
+    }
+    private void issueTimeout(String hashID)
+    {
+        for(OneLinkThread deadThread : getThreadsForUser(hashID))
+        {
+            try
+            {
+                deadThread.stop(false);
+            }
+            catch(IOException e) {}
+        }
+        blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(hashID) + "+-+presumed_disconnect_timeout");
+        for(String iD : myNCS.getUserIDs())
+        {
+            if(getThreadsForUser(iD) == null) { crossNetworkSeekNode("USERHASHID|" + iD); }
+        }
     }
     private ExecutorService receivePool = null;
     public void openReceiveAndWait(int myPort) throws IOException
@@ -503,7 +574,7 @@ public class JFlyNode {
                     missed = 4;
                     if(!jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()).equals("UNKNOWN_USER"))
                     {
-                        crossNetworkSeekNode(jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
+                        jNode.crossNetworkSeekNode("USERHASHID|" + jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
                     }
                 }
             }
@@ -531,10 +602,6 @@ public class JFlyNode {
                 oneDispatch(tji);
             }
         }
-        protected void crossNetworkSeekNode(String userHashIdentity)
-        {
-            
-        }
         protected void doPanthreadDispatch(String block, String header)
         {
             OutputJobInfo onForward = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
@@ -545,6 +612,22 @@ public class JFlyNode {
             introduction = false;
         }
         Boolean introduction = true;
+        protected void handleTransient(String transientBody)
+        {
+            String[] brokenTransient = transientBody.split("+-+");
+            switch(brokenTransient[0])
+            {
+                case "responseping":
+                    jNode.crossNetworkSeekNode("JFLYTRANSIENT:~:" + transientBody);
+                    break;
+                case "seeking":
+                    if(brokenTransient[1].equals(jNode.getUserID())) { jNode.issueExistenceTransient(); }
+                    break;
+                case "forcecontact":
+                    jNode.attemptContact(brokenTransient[1]);
+                    break;
+            }
+        }
         protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
         {
             markedCourtesy = -1;
@@ -575,7 +658,7 @@ public class JFlyNode {
                 case "JFLYTRANSIENT":
                     if(jNode.allowTransientForwarding(datParts[1]))
                     {
-                        
+                        handleTransient(datParts[1]);
                         doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
                     }
                     break;
@@ -589,7 +672,7 @@ public class JFlyNode {
                         oneDispatch(turnDownQuester);
                         if(!jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()).equals("UNKNOWN_USER"))
                         {
-                            crossNetworkSeekNode(jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
+                            jNode.crossNetworkSeekNode("USERHASHID|" + jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
                         }
                     }
                     else
@@ -763,9 +846,19 @@ public class JFlyNode {
             {
                 String ipAddr = (String)params[0];
                 int port = (int)params[1];
-                mySocket = new Socket(ipAddr, port);
-                inLine = new Scanner(mySocket.getInputStream());
-                outLine = new PrintWriter(mySocket.getOutputStream(), true);
+                mySocket = new Socket();
+                InetSocketAddress mySockAddr = new InetSocketAddress(ipAddr, port);
+                mySocket.connect(mySockAddr, 4000);
+                if(!mySocket.isConnected())
+                {
+                    if(threadQuesting) { outputLock.unlock(); }
+                    stop(false);
+                }
+                else
+                {
+                    inLine = new Scanner(mySocket.getInputStream());
+                    outLine = new PrintWriter(mySocket.getOutputStream(), true);
+                }
             }
             catch(IOException e)
             {
