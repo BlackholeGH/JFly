@@ -19,11 +19,14 @@ public class FlyChatGUI extends JFrame {
     JScrollPane sp3;
     JScrollPane sp4;
     JScrollPane sp5;
+    JScrollPane scrollPane1;
     JTable table;
     JTable table1;
     JTable table2;
     JTable table3;
-
+    JTableHeader header;
+    JPanel north;
+    JPanel inNorth;
 
     JButton sendButton;
     JButton exiButton;
@@ -81,10 +84,38 @@ public class FlyChatGUI extends JFrame {
     }
     public void setdarkcolor() {
         setBackground(black);
-        Title.setForeground(Color.black);
-        Title.setForeground(Color.yellow);
-        msgBox.setBackground(Color.yellow);
-        sp.setForeground(Color.yellow);
+        Title.setForeground(black);
+        Title.setForeground(black);
+        msgBox.setBackground(black);
+        sp.setForeground(black);
+        sp.getViewport().setBackground(black);
+        scrollPane1.getVerticalScrollBar().setBackground(black);
+        txtArea1.setBackground(black);
+        Title.setForeground(black);
+        table.setBackground(black);
+        table.setForeground(Color.pink);
+   //     header.setBackground(black);
+        mainFrame.repaint();
+        mainFrame.revalidate();
+
+    }
+    
+        public void setlightcolor() {
+        setBackground(white);
+        
+        Title.setBackground(black);
+        Title.setForeground(Color.pink);
+        msgBox.setBackground(Color.pink);
+        sp.setForeground(white);
+        sp.getViewport().setBackground(white);
+       scrollPane1.getVerticalScrollBar().setBackground(white);
+        txtArea1.setBackground(Color.white);      
+        table.setBackground(Color.pink);
+        table.setForeground(white);
+//        header.setBackground(white);
+        inNorth.setBackground(black);
+        mainFrame.repaint();
+        mainFrame.revalidate();
 
     }
 
@@ -107,6 +138,7 @@ public class FlyChatGUI extends JFrame {
         menuItem  = new JMenuItem("LightMode");
         menuItem2 = new JMenuItem("DarkMode");
         menuItem.addActionListener(lforButton);
+        menuItem2.addActionListener(lforButton);
         menu.add(menuItem);
         menu.add(menuItem2);
         menuBar.add(menu);
@@ -164,9 +196,9 @@ public class FlyChatGUI extends JFrame {
 
         //setting up a North Jpanel for the title to go into, then adding it to mainframe
 //===================================================================================================================
-        JPanel north = new JPanel(new BorderLayout()); //used a flow layout
-        north.setBackground(Color.pink);
-        JPanel inNorth = new JPanel(new FlowLayout());
+
+        north = new JPanel(new BorderLayout());
+        inNorth = new JPanel(new FlowLayout());
         inNorth.setBackground(Color.pink);
         JLabel logo = new JLabel(new ImageIcon(FlyLauncher.getLogoIcon(40, 40)));
         logo.setHorizontalAlignment(JLabel.RIGHT);
@@ -215,14 +247,15 @@ public class FlyChatGUI extends JFrame {
 
         //set up of a textArea1 (x+f(x) with scroll pane
 //--------------------------------------------------------------------------------------------------------------------
-        txtArea1 = new JTextArea(153, 20);
+        txtArea1 = new JTextArea(10, 20);
         txtArea1.setLineWrap(true); //skips to second line
         txtArea1.setWrapStyleWord(true);
-        JScrollPane scrollPane1 = new JScrollPane(txtArea1, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);//adding txt area to scroll pane
+        scrollPane1 = new JScrollPane(txtArea1, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);//adding txt area to scroll pane
         scrollPane1.getVerticalScrollBar().setBackground(Color.BLACK);
         txtArea1.setFont(fnt2);
         txtArea1.setForeground(Color.pink); //Text colour
         txtArea1.setBackground(Color.BLACK);
+        txtArea1.setEditable(false);
         scrollPane1.setBorder(borderTitle); //adds a border to the scroll pane    
         scrollPane1.setBackground(Color.black);
 //--------------------------------------------------------------------------------------------------------------------
@@ -300,8 +333,13 @@ public class FlyChatGUI extends JFrame {
             //button to clear jtext1
             if(e.getSource() == menuItem){
                 JOptionPane.showMessageDialog(rootPane, "clicked!");
-                setdarkcolor();
+                setlightcolor();
                 
+            }
+            if (e.getSource() == menuItem2) {
+                JOptionPane.showMessageDialog(rootPane, "clickeddxrfxgbfgb!");
+                setdarkcolor();
+
             }
             //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == clear && txtArea1.getText().isEmpty()) {
