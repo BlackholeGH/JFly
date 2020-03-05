@@ -157,7 +157,7 @@ public class NetworkConfigurationState {
         int i = 0;
         for(UserInfo ui : myUsers)
         {
-            data[i][0] = ui.getUserName();
+            data[i][0] = TextUtility.desanitizeText(ui.getUserName());
             data[i][1] = ui.getID();
             i++;
         }

@@ -279,7 +279,7 @@ public abstract class OneLinkThread implements Runnable
                 {
                     if(!introduction)
                     {
-                        jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
+                        jNode.setLocalUsername(TextUtility.sanitizeText(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE)));
                         if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                         {
                             jNode.setLocalUsername("IP User " + jNode.hostAddr());
@@ -297,7 +297,7 @@ public abstract class OneLinkThread implements Runnable
         {
             if(!introduction)
             {
-                jNode.setLocalUsername(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE));
+                jNode.setLocalUsername(TextUtility.sanitizeText(JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE)));
                 if(jNode.getLocalUsername() == null || jNode.getLocalUsername().isEmpty())
                 {
                     jNode.setLocalUsername("IP User " + jNode.hostAddr());

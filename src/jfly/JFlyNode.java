@@ -319,10 +319,16 @@ public class JFlyNode {
     }
     public String[] getLastMessages(int num)
     {
-        return blockManager.getLast(num);
+        String[] out = blockManager.getLast(num);
+        for(int i = 0; i < out.length; i++)
+        {
+            out[i] = TextUtility.desanitizeText(out[i]);
+        }
+        return out;
     }
     public void sendMessage(String message)
     {
+        message = TextUtility.sanitizeText(message);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
     }
     public synchronized String pullOneBlockByHash(String hash)
@@ -507,6 +513,7 @@ public class JFlyNode {
         if(myListenPort > 65535 || myListenPort < 0) { myListenPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
+        usr = TextUtility.sanitizeText(usr);
         if(usr == null || usr.isEmpty())
         {
             usr = "IP User " + hostAddr();
