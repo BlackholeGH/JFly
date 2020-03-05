@@ -11,6 +11,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -65,7 +66,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(portLabel);
         mainOptions.add(Box.createVerticalStrut(10));
         JTextField portField = new JTextField(20);
-        portField.setText("44665");
+        portField.setText(Integer.toString(myNode.getManualListenPort()));
         portField.setHorizontalAlignment(JTextField.CENTER);
         portField.setAlignmentX(CENTER_ALIGNMENT);
         portField.setMaximumSize(new Dimension(100, 20));
@@ -102,6 +103,22 @@ public class FlyListenOpts extends FlyLauncher
         interNode.setAlignmentX(CENTER_ALIGNMENT);
         interNode.setHorizontalAlignment(JLabel.CENTER);
         mainOptions.add(interNode);
+        mainOptions.add(Box.createVerticalStrut(20));
+        
+        JButton setButton = new JButton("Set");
+        setButton.setToolTipText("Manually set the port value.");
+        setButton.setActionCommand("setport");
+        setButton.addActionListener((ActionEvent e) -> portField.postActionEvent());
+        setButton.setAlignmentX(CENTER_ALIGNMENT);
+        mainOptions.add(setButton);
+        mainOptions.add(Box.createVerticalStrut(10));
+        
+        JButton closeButton = new JButton("Close");
+        closeButton.setToolTipText("Close the node listener options.");
+        closeButton.setActionCommand("close");
+        closeButton.addActionListener(this);
+        closeButton.setAlignmentX(CENTER_ALIGNMENT);
+        mainOptions.add(closeButton);
         
         mainOptions.setBorder(new EmptyBorder(10,10,10,10));
         
@@ -124,7 +141,11 @@ public class FlyListenOpts extends FlyLauncher
         {
             case "setport":
                 super.actionPerformed(ae);
+                System.out.println("Set");
                 myNode.setManualListenPort(targetPort);
+                break;
+            case "close":
+                this.dispose();
                 break;
         }
     }

@@ -500,6 +500,10 @@ public class JFlyNode {
     }
     private ExecutorService receivePool = null;
     private int myListenPort = 44665;
+    public int getManualListenPort()
+    {
+        return myListenPort;
+    }
     public void setManualListenPort(int port)
     {
         if(port > 65535 || port < 0) { myListenPort = defaultPort; }

@@ -208,13 +208,21 @@ public class FlyLauncher extends JFrame implements ActionListener
         optionsButton.addActionListener(this);
         optionsButton.setAlignmentX(CENTER_ALIGNMENT);
         startSoloPanel.add(optionsButton);
+        startSoloPanel.add(Box.createVerticalStrut(20));
+        
+        JButton closeButton = new JButton("Exit application");
+        closeButton.setToolTipText("Press close and exit JFly.");
+        closeButton.setActionCommand("close");
+        closeButton.addActionListener(this);
+        closeButton.setAlignmentX(CENTER_ALIGNMENT);
+        startSoloPanel.add(closeButton);
         startSoloPanel.add(Box.createVerticalStrut(50));
         
         launcherPanel.add(startSoloPanel, BorderLayout.SOUTH);
         
         add(launcherPanel);
         
-        setPreferredSize(new Dimension(1000, 650));
+        setPreferredSize(new Dimension(1000, 700));
         pack();
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
@@ -329,6 +337,9 @@ public class FlyLauncher extends JFrame implements ActionListener
                 {
                     targetIP = ipText;
                 }
+                break;
+            case "close":
+                myNode.shutdownNode();
                 break;
         }
     }
