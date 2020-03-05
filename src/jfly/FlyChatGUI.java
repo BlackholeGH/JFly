@@ -1,7 +1,6 @@
 package jfly;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.peer.LightweightPeer;
 import java.util.ArrayList;
 import java.text.DecimalFormat;
 
@@ -163,6 +162,11 @@ public class FlyChatGUI extends JFrame {
 
     }
 
+    public void closeMainframe()
+    {
+        mainFrame.dispose();
+    }
+    
     private void view() {
         
         
@@ -180,6 +184,7 @@ public class FlyChatGUI extends JFrame {
 
         //this makes the mainframe for all the panels to be placed within
         //Configuring up the frame
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 //===================================================================================================================
         mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
         mainFrame.setIconImages(FlyLauncher.getLogoIcons());

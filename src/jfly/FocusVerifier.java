@@ -6,16 +6,8 @@
 package jfly;
 
 
-import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.text.ParseException;
 import javax.swing.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
-import javax.swing.text.Highlighter.HighlightPainter;
 /**
  *
  * @author dg7239p

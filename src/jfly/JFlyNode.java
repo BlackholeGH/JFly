@@ -5,25 +5,17 @@
  */
 package jfly;
 
-import java.awt.*;
 import java.util.concurrent.*;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
-import java.net.SocketAddress;
-import java.awt.event.*;
 import java.io.*;
 import java.net.ServerSocket;
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Queue;
-import java.util.LinkedList;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 /**
@@ -70,19 +62,34 @@ public class JFlyNode {
     }
     public void shutdownNode()
     {
+        shutdownNode(false);
+    }
+    public void shutdownNode(Boolean relaunch)
+    {
         Runnable finalShutdownThread = () -> 
         {
             Thread.currentThread().setName("Shutdown cleanup thread");
             if(pingerThread != null) { pingerThread.interrupt(); }
+            if(coordinatorThread != null) { coordinatorThread.interrupt(); }
             leaveCluster();
             pShutdown = true;
             if(receivePool != null)
             {
                 receivePool.shutdownNow();
             }
-            if(myGUI != null) { myGUI.dispose(); }
+            if(myGUI != null)
+            {
+                myGUI.closeMainframe();
+                myGUI.dispose();
+            }
             if(launcher != null) { launcher.dispose(); }
-            System.exit(0);
+            if(!relaunch) { System.exit(0); }
+            else
+            {
+                ConnectionThreadDirectory = new ArrayList();
+                blockManager = new BlockchainNodeManager(this);
+                launcher = new FlyLauncher(this);
+            }
         };
         new Thread(finalShutdownThread).start();
     }
@@ -126,11 +133,50 @@ public class JFlyNode {
             Thread.currentThread().setName("Connection autoping thread");
             while(!myNode.shuttingDown())
             {
-                myNode.pingThreads();
-                crossNetworkSeekNode("");
                 try
                 {
+                    myNode.pingThreads();
+                    crossNetworkSeekNode("");
                     Thread.sleep(5000);
+                }
+                catch(InterruptedException e) { }
+            } 
+        }
+    }
+    Thread coordinatorThread = null;
+    private void startCoordinator()
+    {
+        coordinatorThread = new Thread(new coordinatorRunnable(this));
+        coordinatorThread.start();
+    }
+    private class coordinatorRunnable implements Runnable
+    {
+        JFlyNode myNode = null;
+        public coordinatorRunnable(JFlyNode node)
+        {
+            myNode = node;
+        }
+        @Override
+        public void run()
+        {
+            Thread.currentThread().setName("Coordination layer thread");
+            while(!myNode.shuttingDown())
+            {
+                try
+                {
+                    ArrayList<String> usrIDs = myNode.getNCS().getUserIDs();
+                    if(usrIDs.size() > 0)
+                    {
+                        usrIDs.sort(null);
+                        if(myNode.getUserID().equals(usrIDs.get(0)))
+                        {
+                            for(int i = 1; i < usrIDs.size(); i++)
+                            {
+                                myNode.crossNetworkSeekNode("USERHASHID|" + usrIDs.get(i));
+                            }
+                        }
+                        Thread.sleep(10000);
+                    }
                 }
                 catch(InterruptedException e) { }
             }
@@ -273,10 +319,16 @@ public class JFlyNode {
     }
     public String[] getLastMessages(int num)
     {
-        return blockManager.getLast(num);
+        String[] out = blockManager.getLast(num);
+        for(int i = 0; i < out.length; i++)
+        {
+            out[i] = TextUtility.desanitizeText(out[i]);
+        }
+        return out;
     }
     public void sendMessage(String message)
     {
+        message = TextUtility.sanitizeText(message);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
     }
     public synchronized String pullOneBlockByHash(String hash)
@@ -456,10 +508,12 @@ public class JFlyNode {
     public void openReceiveAndWait() throws IOException
     {
         startPinger();
+        startCoordinator();
         myGUI = new FlyChatGUI(this);
         if(myListenPort > 65535 || myListenPort < 0) { myListenPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
+        usr = TextUtility.sanitizeText(usr);
         if(usr == null || usr.isEmpty())
         {
             usr = "IP User " + hostAddr();
@@ -480,8 +534,8 @@ public class JFlyNode {
     }
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
-        //new Thread(new GUIThread(this)).start();
         startPinger();
+        startCoordinator();
         myGUI = new FlyChatGUI(this);
         blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
@@ -565,11 +619,17 @@ public class JFlyNode {
                 int port = (int)params[1];
                 mySocket = new Socket();
                 InetSocketAddress mySockAddr = new InetSocketAddress(ipAddr, port);
-                mySocket.connect(mySockAddr, 4000);
+                try
+                {
+                    mySocket.connect(mySockAddr, 4000);
+                }
+                catch(IOException e) { }
                 if(!mySocket.isConnected())
                 {
                     if(threadQuesting) { outputLock.unlock(); }
-                    stop(false);
+                    System.out.println("Here");
+                    JOptionPane.showMessageDialog(myNode.getGUI(), "Could not connect to the specified IP...");
+                    myNode.shutdownNode(true);
                 }
                 else
                 {
