@@ -26,6 +26,7 @@ public class FlyChatGUI extends JFrame {
     JTableHeader header;
     JPanel north;
     JPanel inNorth;
+    TitledBorder borderTitle;
 
     JButton sendButton;
     JButton exiButton;
@@ -82,15 +83,16 @@ public class FlyChatGUI extends JFrame {
         view();
     }
     public void setdarkcolor() {
-        setBackground(black);
-        Title.setForeground(black);
-        Title.setForeground(black);
+        setBackground(black);     
+        Title.setForeground(Color.black);
+        inNorth.setBackground(Color.pink);
         msgBox.setBackground(black);
         sp.setForeground(black);
         sp.getViewport().setBackground(black);
         scrollPane1.getVerticalScrollBar().setBackground(black);
         txtArea1.setBackground(black);
-        Title.setForeground(black);
+        txtArea1.setForeground(Color.pink);
+      
         table.setBackground(black);
         table.setForeground(Color.pink);
    //     header.setBackground(black);
@@ -106,13 +108,16 @@ public class FlyChatGUI extends JFrame {
         Title.setForeground(Color.pink);
         msgBox.setBackground(Color.pink);
         sp.setForeground(white);
-        sp.getViewport().setBackground(white);
+        sp.getViewport().setBackground(Color.pink);
        scrollPane1.getVerticalScrollBar().setBackground(white);
-        txtArea1.setBackground(Color.white);      
+        txtArea1.setBackground(Color.pink); 
+        txtArea1.setForeground(Color.WHITE);
         table.setBackground(Color.pink);
         table.setForeground(white);
 //        header.setBackground(white);
         inNorth.setBackground(black);
+        borderTitle.setTitleColor(Color.white);
+        header.setForeground(Color.WHITE);
         mainFrame.repaint();
         mainFrame.revalidate();
 
@@ -173,7 +178,7 @@ public class FlyChatGUI extends JFrame {
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
-        TitledBorder borderTitle = BorderFactory.createTitledBorder("Main Chat");
+        borderTitle = BorderFactory.createTitledBorder("Main Chat");
         borderTitle.setTitleColor(Color.pink);
         borderTitle.setTitleJustification(borderTitle.CENTER);
 
@@ -236,7 +241,7 @@ public class FlyChatGUI extends JFrame {
        
         sp = new JScrollPane(); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        sp.setPreferredSize(new Dimension(260, 600));
+        sp.setPreferredSize(new Dimension(260, 30));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
         updateTable(data);
@@ -302,7 +307,7 @@ public class FlyChatGUI extends JFrame {
         table = new JTable(model);
         table.setBackground(Color.black);
         table.setForeground(Color.pink);
-        JTableHeader header = table.getTableHeader(); //for colour
+        header = table.getTableHeader(); //for colour
         header.setBackground(Color.black);
         header.setForeground(Color.PINK);
         table.setRowHeight(30);
