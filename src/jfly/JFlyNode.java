@@ -126,11 +126,50 @@ public class JFlyNode {
             Thread.currentThread().setName("Connection autoping thread");
             while(!myNode.shuttingDown())
             {
-                myNode.pingThreads();
-                crossNetworkSeekNode("");
                 try
                 {
+                    myNode.pingThreads();
+                    crossNetworkSeekNode("");
                     Thread.sleep(5000);
+                }
+                catch(InterruptedException e) { }
+            } 
+        }
+    }
+    Thread coordinatorThread = null;
+    private void startCoordinator()
+    {
+        coordinatorThread = new Thread(new coordinatorRunnable(this));
+        coordinatorThread.start();
+    }
+    private class coordinatorRunnable implements Runnable
+    {
+        JFlyNode myNode = null;
+        public coordinatorRunnable(JFlyNode node)
+        {
+            myNode = node;
+        }
+        @Override
+        public void run()
+        {
+            Thread.currentThread().setName("Coordination layer thread");
+            while(!myNode.shuttingDown())
+            {
+                try
+                {
+                    ArrayList<String> usrIDs = myNode.getNCS().getUserIDs();
+                    if(usrIDs.size() > 0)
+                    {
+                        usrIDs.sort(null);
+                        if(myNode.getUserID().equals(usrIDs.get(0)))
+                        {
+                            for(int i = 1; i < usrIDs.size(); i++)
+                            {
+                                myNode.crossNetworkSeekNode("USERHASHID|" + usrIDs.get(i));
+                            }
+                        }
+                        Thread.sleep(10000);
+                    }
                 }
                 catch(InterruptedException e) { }
             }
@@ -456,6 +495,7 @@ public class JFlyNode {
     public void openReceiveAndWait() throws IOException
     {
         startPinger();
+        startCoordinator();
         myGUI = new FlyChatGUI(this);
         if(myListenPort > 65535 || myListenPort < 0) { myListenPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
@@ -480,8 +520,8 @@ public class JFlyNode {
     }
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
-        //new Thread(new GUIThread(this)).start();
         startPinger();
+        startCoordinator();
         myGUI = new FlyChatGUI(this);
         blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
