@@ -1,7 +1,6 @@
 package jfly;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.peer.LightweightPeer;
 import java.util.ArrayList;
 import java.text.DecimalFormat;
 
