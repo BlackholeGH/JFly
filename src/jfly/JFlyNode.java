@@ -70,6 +70,7 @@ public class JFlyNode {
         {
             Thread.currentThread().setName("Shutdown cleanup thread");
             if(pingerThread != null) { pingerThread.interrupt(); }
+            if(coordinatorThread != null) { coordinatorThread.interrupt(); }
             leaveCluster();
             pShutdown = true;
             if(receivePool != null)
