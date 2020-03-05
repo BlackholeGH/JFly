@@ -170,7 +170,7 @@ public abstract class OneLinkThread implements Runnable
         switch(datParts[0])               
         {
             case "JFLYMSGACK":
-                if(!datParts[1].split(Pattern.quote(":"))[1].equals(jNode.hostAddr()))
+                if(!datParts[1].split(Pattern.quote(":"))[1].equals(jNode.hostAddr()) && !datParts[1].split(Pattern.quote(":"))[1].equals(java.net.InetAddress.getLocalHost().getHostAddress()))
                 {
                     if(introduction)
                     {
