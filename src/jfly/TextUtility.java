@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class TextUtility {
     public static String sanitizeText(String text)
     {
+        if(text == null) { return null; }
         text = text.replace(":~:", "[JFLYMESSAGESEPARATOR]");
         text = text.replace("+-+", "[NCSUSERINFOSEPARATOR]");
         text = text.replace("|", "[BNMCHAINBLOCKSEPARATOR]");
@@ -22,6 +23,7 @@ public class TextUtility {
     }
     public static String desanitizeText(String text)
     {
+        if(text == null) { return null; }
         text = text.replace("[JFLYMESSAGESEPARATOR]", ":~:");
         text = text.replace("[NCSUSERINFOSEPARATOR]", "+-+");
         text = text.replace("[BNMCHAINBLOCKSEPARATOR]", "|");
