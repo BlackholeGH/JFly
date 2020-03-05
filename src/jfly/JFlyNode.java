@@ -62,6 +62,10 @@ public class JFlyNode {
     }
     public void shutdownNode()
     {
+        shutdownNode(false);
+    }
+    public void shutdownNode(Boolean relaunch)
+    {
         Runnable finalShutdownThread = () -> 
         {
             Thread.currentThread().setName("Shutdown cleanup thread");
@@ -72,9 +76,19 @@ public class JFlyNode {
             {
                 receivePool.shutdownNow();
             }
-            if(myGUI != null) { myGUI.dispose(); }
+            if(myGUI != null)
+            {
+                myGUI.closeMainframe();
+                myGUI.dispose();
+            }
             if(launcher != null) { launcher.dispose(); }
-            System.exit(0);
+            if(!relaunch) { System.exit(0); }
+            else
+            {
+                ConnectionThreadDirectory = new ArrayList();
+                blockManager = new BlockchainNodeManager(this);
+                launcher = new FlyLauncher(this);
+            }
         };
         new Thread(finalShutdownThread).start();
     }
@@ -597,11 +611,17 @@ public class JFlyNode {
                 int port = (int)params[1];
                 mySocket = new Socket();
                 InetSocketAddress mySockAddr = new InetSocketAddress(ipAddr, port);
-                mySocket.connect(mySockAddr, 4000);
+                try
+                {
+                    mySocket.connect(mySockAddr, 4000);
+                }
+                catch(IOException e) { }
                 if(!mySocket.isConnected())
                 {
                     if(threadQuesting) { outputLock.unlock(); }
-                    stop(false);
+                    System.out.println("Here");
+                    JOptionPane.showMessageDialog(myNode.getGUI(), "Could not connect to the specified IP...");
+                    myNode.shutdownNode(true);
                 }
                 else
                 {

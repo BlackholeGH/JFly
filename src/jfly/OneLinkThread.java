@@ -97,6 +97,7 @@ public abstract class OneLinkThread implements Runnable
     }
     public void oneDispatch(JFlyNode.OutputJobInfo myJob)
     {
+        if(!mySocket.isConnected()) { return; }
         Boolean bypass = false;
         if(myJob.getType() == JFlyNode.OutputJobInfo.JobType.INTERNAL_LOCK && myJob.getToken() == outputLock) { bypass = true; }
         if(!bypass) { outputLock.lock(); }
@@ -320,7 +321,7 @@ public abstract class OneLinkThread implements Runnable
             Thread.currentThread().setName("Socket read thread");
             nameSet = true;
         }
-        while(inLine.hasNextLine())
+        while(inLine != null && inLine.hasNextLine())
         {
             inputLock.lock();
             try
@@ -349,11 +350,12 @@ public abstract class OneLinkThread implements Runnable
     }
     public void stop(Boolean skipBlockUnregister) throws IOException
     {
+        System.out.println("indiv stop");
         stopping = true;
         JFlyNode.OutputJobInfo disCourt = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.SINGLE_DISPATCH, "stopping_disconnect_courtesy", "JFLYDISCONNECTCOURTESY");
         oneDispatch(disCourt);
         mySocket.close();
-        inLine.close();
+        if(inLine != null) { inLine.close(); }
         jNode.unregisterThread(this, skipBlockUnregister);
     }
 }
