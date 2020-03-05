@@ -354,19 +354,19 @@ public class JFlyNode {
     {
         new JFlyNode();
     }
-    private FlyInterface launcher = null;
+    private FlyLauncher launcher = null;
     public JFlyNode()
     {
         ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
-        launcher = new FlyInterface(this);
+        launcher = new FlyLauncher(this);
         /*try
         {
             openReceiveAndWait(-1);
         }
         catch(Exception e) { }*/
     }
-    public void wipeLauncher(FlyInterface fl)
+    public void wipeLauncher(FlyLauncher fl)
     {
         if(fl == launcher)
         {
@@ -443,11 +443,17 @@ public class JFlyNode {
         }
     }
     private ExecutorService receivePool = null;
-    public void openReceiveAndWait(int myPort) throws IOException
+    private int myListenPort = 44665;
+    public void setManualListenPort(int port)
+    {
+        if(port > 65535 || port < 0) { myListenPort = defaultPort; }
+        else { myListenPort = port; }
+    }
+    public void openReceiveAndWait() throws IOException
     {
         startPinger();
-        myGUI = new GUI(this);
-        if(myPort > 65535 || myPort < 0) { myPort = defaultPort; }
+        myGUI = new FlyChatGUI(this);
+        if(myListenPort > 65535 || myListenPort < 0) { myListenPort = defaultPort; }
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
         if(usr == null || usr.isEmpty())
@@ -457,14 +463,14 @@ public class JFlyNode {
         NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(hostAddr(), "", usr);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
         receivePool = Executors.newFixedThreadPool(500);
-        try (ServerSocket listener = new ServerSocket(myPort)) {
+        try (ServerSocket listener = new ServerSocket(myListenPort)) {
             while (!shuttingDown()) {
                 receivePool.execute(new ServerStyleThread(listener.accept(), this));
             }
         }
     }
-    private GUI myGUI = null;
-    public GUI getGUI()
+    private FlyChatGUI myGUI = null;
+    public FlyChatGUI getGUI()
     {
         return myGUI;
     }
@@ -472,7 +478,7 @@ public class JFlyNode {
     {
         //new Thread(new GUIThread(this)).start();
         startPinger();
-        myGUI = new GUI(this);
+        myGUI = new FlyChatGUI(this);
         blockManager.addRegistrarTolerance(1);
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
         connectThread.setDemandIntroduction();

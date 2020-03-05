@@ -87,7 +87,7 @@ public class BlockchainNodeManager {
             }
         }
         cur.reWriteAll(newUsers);
-        GUI myGUI = myNode.getGUI();
+        FlyChatGUI myGUI = myNode.getGUI();
         if(myGUI != null)
         {
             myGUI.updateTable(cur.getTableData());
@@ -162,7 +162,7 @@ public class BlockchainNodeManager {
                 myNode.resetAddress(authoredUser.getIP(), this);
             }
         }
-        GUI myGUI = myNode.getGUI();
+        FlyChatGUI myGUI = myNode.getGUI();
         if(myGUI != null) { myGUI.remoteSetTextBox(myNode.getLastMessages(50)); }
         //calculateConfigs(myNode.getNCS(), 1);
     }

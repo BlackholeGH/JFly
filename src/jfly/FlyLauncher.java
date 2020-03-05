@@ -39,15 +39,18 @@ import javax.swing.ImageIcon;
  *
  * @author Blackhole
  */
-public class FlyInterface extends JFrame implements ActionListener
+public class FlyLauncher extends JFrame implements ActionListener
 {
-    private JFlyNode myNode;
-    public FlyInterface(JFlyNode node)
+    protected JFlyNode myNode;
+    public FlyLauncher(JFlyNode node)
     {
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        addWindowListener(FlyInterface.getExitListener(node));
         myNode = node;
-        viewLauncher();
+        if(!(this instanceof FlyListenOpts))
+        {
+            setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            addWindowListener(FlyLauncher.getExitListener(node));
+            viewLauncher();
+        }
     }
     public static WindowListener getExitListener(JFlyNode myNode)
     {
@@ -110,7 +113,7 @@ public class FlyInterface extends JFrame implements ActionListener
         
         menuBar.add(optionsMen);
         
-        this.setJMenuBar(menuBar);
+        //this.setJMenuBar(menuBar);
         
         JPanel launcherPanel = new JPanel(new BorderLayout());
         
@@ -207,6 +210,14 @@ public class FlyInterface extends JFrame implements ActionListener
         clusterButton.addActionListener(this);
         clusterButton.setAlignmentX(CENTER_ALIGNMENT);
         startSoloPanel.add(clusterButton);
+        startSoloPanel.add(Box.createVerticalStrut(10));
+        
+        JButton optionsButton = new JButton("Node listener options");
+        optionsButton.setToolTipText("Press to view node listener options.");
+        optionsButton.setActionCommand("options");
+        optionsButton.addActionListener(this);
+        optionsButton.setAlignmentX(CENTER_ALIGNMENT);
+        startSoloPanel.add(optionsButton);
         startSoloPanel.add(Box.createVerticalStrut(50));
         
         launcherPanel.add(startSoloPanel, BorderLayout.SOUTH);
@@ -218,18 +229,20 @@ public class FlyInterface extends JFrame implements ActionListener
         
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         setVisible(true);  // Needed to ensure that the items can be seen.
     }
     Boolean sharedWarningFlag = false;
-    int targetPort = 44665;
+    protected int targetPort = 44665;
     String targetIP = "";
     @Override
     public void actionPerformed(ActionEvent ae)
     {
         switch(ae.getActionCommand())
         {
+            case "options":
+                new FlyListenOpts(myNode);
+                break;
             case "connect":
                 if(targetPort == -1 || targetIP.equals(""))
                 {
@@ -262,7 +275,7 @@ public class FlyInterface extends JFrame implements ActionListener
                     Thread.currentThread().setName("Incoming connection listener");
                     try
                     {
-                        myNode.openReceiveAndWait(-1);
+                        myNode.openReceiveAndWait();
                     }
                     catch(IOException e) { System.out.println(e.toString()); }
                 };

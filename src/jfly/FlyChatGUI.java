@@ -10,7 +10,7 @@ import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-public class GUI extends JFrame {
+public class FlyChatGUI extends JFrame {
 
 //**************************************************************************************
 
@@ -73,8 +73,8 @@ public class GUI extends JFrame {
     //GUI prg =
     // Using MVC
     JFlyNode myNode = null;
-    public GUI(JFlyNode jNode) { //making the constructor
-        addWindowListener(FlyInterface.getExitListener(jNode));
+    public FlyChatGUI(JFlyNode jNode) { //making the constructor
+        addWindowListener(FlyLauncher.getExitListener(jNode));
         myNode = jNode;
         model();
         view();
@@ -150,14 +150,14 @@ public class GUI extends JFrame {
         //Configuring up the frame
 //===================================================================================================================
         mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
-        mainFrame.setIconImages(FlyInterface.getLogoIcons());
+        mainFrame.setIconImages(FlyLauncher.getLogoIcons());
         mainFrame.setSize(1050, 700);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setResizable(false);
         mainFrame.setBackground(Color.PINK);
         mainFrame.setVisible(true);
         mainFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        mainFrame.addWindowListener(FlyInterface.getExitListener(myNode));
+        mainFrame.addWindowListener(FlyLauncher.getExitListener(myNode));
         mainFrame.setJMenuBar(menuBar);
         setBackground(Color.PINK);
 //===================================================================================================================
@@ -168,7 +168,7 @@ public class GUI extends JFrame {
         north.setBackground(Color.pink);
         JPanel inNorth = new JPanel(new FlowLayout());
         inNorth.setBackground(Color.pink);
-        JLabel logo = new JLabel(new ImageIcon(FlyInterface.getLogoIcon(40, 40)));
+        JLabel logo = new JLabel(new ImageIcon(FlyLauncher.getLogoIcon(40, 40)));
         logo.setHorizontalAlignment(JLabel.RIGHT);
         inNorth.add(logo);
         Title = new JLabel("JFly");
