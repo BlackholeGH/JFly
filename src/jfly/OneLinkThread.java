@@ -350,7 +350,6 @@ public abstract class OneLinkThread implements Runnable
     }
     public void stop(Boolean skipBlockUnregister) throws IOException
     {
-        System.out.println("indiv stop");
         stopping = true;
         JFlyNode.OutputJobInfo disCourt = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.SINGLE_DISPATCH, "stopping_disconnect_courtesy", "JFLYDISCONNECTCOURTESY");
         oneDispatch(disCourt);
