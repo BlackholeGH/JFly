@@ -119,7 +119,7 @@ public class NetworkConfigurationState {
         {
             if(ui.getID().equals(iD)) { return ui.getIP(); }
         }
-        return "UNKNOWN_USER";
+        return "Unknown User";
     }
     public ArrayList<UserInfo> getUsers()
     {
