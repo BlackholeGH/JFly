@@ -141,7 +141,6 @@ public class FlyListenOpts extends FlyLauncher
         {
             case "setport":
                 super.actionPerformed(ae);
-                System.out.println("Set");
                 myNode.setManualListenPort(targetPort);
                 break;
             case "close":

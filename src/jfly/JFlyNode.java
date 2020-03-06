@@ -187,7 +187,6 @@ public class JFlyNode {
         try
         {
             threadListLock.lock();
-            System.out.println("Closing");
             for(int i = 0; i < ConnectionThreadDirectory.size(); i++)
             {    
                 if(ConnectionThreadDirectory.size() == 0) { break; }
@@ -197,7 +196,6 @@ public class JFlyNode {
         }
         catch(IOException e) { System.out.println(e.getMessage()); }
         finally { threadListLock.unlock(); }
-        System.out.println("Closing fin");
     }
     public static final int defaultPort = 44665;
     private String myID = "";
