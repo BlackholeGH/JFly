@@ -50,13 +50,12 @@ public class NetworkConfigurationStateIT {
      */
     @Test
     public void testGetRegistrar() {
-        System.out.println("getRegistrar");
-        NetworkConfigurationState instance = new NetworkConfigurationState();
-        String expResult = "";
+        System.out.println("getRegistrar");    
+        String expResult = "192.168.0.1+-+Gagan+-+A Hash";
         String result = instance.getRegistrar();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -64,13 +63,12 @@ public class NetworkConfigurationStateIT {
      */
     @Test
     public void testGetTotalNetworkMembers() {
-        System.out.println("getTotalNetworkMembers");
-        NetworkConfigurationState instance = new NetworkConfigurationState();
-        int expResult = 0;
+        System.out.println("getTotalNetworkMembers");      
+        int expResult = 1;
         int result = instance.getTotalNetworkMembers();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+       // fail("The test case is a prototype.");
         
     }
 
@@ -220,7 +218,7 @@ public class NetworkConfigurationStateIT {
     @Test
     public void testToString() {
         System.out.println("toString");      
-        String expResult = "1: 192.168.0.1, A Hash, Gagan";
+        String expResult = "1: 192.168.0.1, A Hash, Gagan\n";
         String result = instance.toString();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
@@ -232,13 +230,12 @@ public class NetworkConfigurationStateIT {
      */
     @Test
     public void testGetTableData() {
-        System.out.println("getTableData");
-        NetworkConfigurationState instance = new NetworkConfigurationState();
-        String[][] expResult = null;
+        System.out.println("getTableData");     
+        String[][] expResult = new String[][] { { "Gagan", "A Hash"} };
         String[][] result = instance.getTableData();
         assertArrayEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
         //assertSame(expResult, result);
     }
     
