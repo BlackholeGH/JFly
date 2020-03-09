@@ -729,44 +729,84 @@ public class JFlyNode {
         }
     }
     /**
-     * This class contains information for an job to be dispatched by 
+     * This class contains information for an job to be dispatched by a OneLinkNode.
      */
     public static class OutputJobInfo
     {
+        /**
+         * Enumeration representing the different dispatch job types that can exist.
+         * SINGLE_DISPATCH: The data will be dispatched on a single connection thread.
+         * MULTIPLE_DISPATCH: The data will be dispatched on multiple connection threads.
+         * INTERNAL_LOCK: This indicates that the OutputJobInfo contains a token object that can be used to bypass the outputLock ReentrantLock.
+         */
         enum JobType { SINGLE_DISPATCH, MULTIPLE_DISPATCH, INTERNAL_LOCK };
         private JobType type;
         private String data;
         private String header;
         private Object token;
+        /**
+         * The OutputJobInfo constructor.
+         * @param myType The JobType for this OutputJobInfo.
+         * @param myData The data to be sent for this job.
+         * @param myHeader The header for the data to be sent.
+         */
         public OutputJobInfo(JobType myType, String myData, String myHeader)
         {
             type = myType;
             data = myData;
             header = myHeader;
         }
+        /**
+         * Set the token object for this OutputJobInfo.
+         * @param myToken The token object to be set.
+         */
         public void setToken(Object myToken)
         {
             token = myToken;
         }
+        /**
+         * Get the token object for this OutputJobInfo.
+         * @return The token object. This is a lock object used to bypass a synchronization lock when the message is to be sent.
+         */
         public Object getToken()
         {
             return token;
         }
+        /**
+         * Get the JobType for this OutputJobInfo.
+         * @return The JobType for this instance.
+         */
         public JobType getType()
         {
             return type;
         }
+        /**
+         * Get the data to be sent for this OutputJobInfo.
+         * @return The data String.
+         */
         public String getData()
         {
             return data;
         }
+        /**
+         * Get the data header to be used for this OutputJobInfo.
+         * @return The data header String.
+         */
         public String getHeader()
         {
             return header;
         }
     }
+    /**
+     * This class is an extension of OneLinkThread that handles incoming connections.
+     */
     public static class ServerStyleThread extends OneLinkThread
     {
+        /**
+         * The ServerStyleThread constructor.
+         * @param myAcceptedConnection The accepted Socket connection.
+         * @param myNode The associated JFlyNode for this ServerStyleThread.
+         */
         public ServerStyleThread(Socket myAcceptedConnection, JFlyNode myNode)
         {
             super(myNode);
@@ -789,9 +829,18 @@ public class JFlyNode {
             }
         }
     }
+    /**
+     * This class is an extension of OneLinkThread that handles outgoing connections.
+     */
     public static class ClientStyleThread extends OneLinkThread
     {
         protected Boolean threadQuesting = false;
+        /**
+         * The ClientStyleThread constructor.
+         * @param params The connection parameter array, containing the connection IP address and port.
+         * @param myNode The associated JFlyNode for this ClientStyleThread.
+         * @param questing True/false value for whether this ClientStyleThread is a "questing" thread (attempting to reconnect to a disconnected node).
+         */
         public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing)
         {
             super(myNode);
@@ -829,6 +878,10 @@ public class JFlyNode {
                 catch(IOException e2) {}
             }
         }
+        /**
+         * The run override specific to ClientStyleThread. This calls the run() operation of the superclass unless the ClientStyleThread is questing.
+         * When questing, the thread runs a reduced set of responses that are designed to handle quester responses. If the quester attempt is accepted, the superclass run() function is again called.
+         */
         @Override
         public void run()
         {
