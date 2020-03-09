@@ -1,4 +1,5 @@
 package jfly;
+import com.sun.corba.se.impl.naming.namingutil.CorbalocURL;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class FlyChatGUI extends JFrame {
     JPanel north;
     JPanel inNorth;
     TitledBorder borderTitle;
+    TitledBorder borderTitle2;
 
     JButton sendButton;
     JButton exiButton;
@@ -41,6 +43,7 @@ public class FlyChatGUI extends JFrame {
     JPanel mainPanel;
     JMenuItem menuItem;
     JMenuItem menuItem2;
+    JMenuItem menuItem3;
     DecimalFormat decimalFormat;
     Color white = Color.WHITE;
     Color black = Color.BLACK;
@@ -95,6 +98,10 @@ public class FlyChatGUI extends JFrame {
       
         table.setBackground(black);
         table.setForeground(Color.pink);
+        header.setForeground(Color.PINK);
+               
+        header.setBackground(Color.black);
+        borderTitle2.setTitleColor(Color.pink);
    //     header.setBackground(black);
         mainFrame.repaint();
         mainFrame.revalidate();
@@ -106,22 +113,29 @@ public class FlyChatGUI extends JFrame {
         
         Title.setBackground(black);
         Title.setForeground(Color.pink);
-        msgBox.setBackground(Color.pink);
+        msgBox.setBackground(Color.black);
+       
         sp.setForeground(white);
         sp.getViewport().setBackground(Color.pink);
        scrollPane1.getVerticalScrollBar().setBackground(white);
         txtArea1.setBackground(Color.pink); 
-        txtArea1.setForeground(Color.WHITE);
+        txtArea1.setForeground(black);
         table.setBackground(Color.pink);
-        table.setForeground(white);
+        table.setForeground(black);
 //        header.setBackground(white);
         inNorth.setBackground(black);
-        borderTitle.setTitleColor(Color.white);
-        header.setForeground(Color.WHITE);
+        borderTitle.setTitleColor(Color.PINK);
+        header.setForeground(Color.black);
+        header.setBackground(Color.PINK);
+        borderTitle2.setTitleColor(Color.pink);
         mainFrame.repaint();
         mainFrame.revalidate();
 
     }
+        public void setcolour(Color FG, Color BG){
+            
+            
+        }
 
     public void setlightcolor(String light, String dark) {
         setBackground(white);
@@ -141,10 +155,14 @@ public class FlyChatGUI extends JFrame {
         menu.setFont(fnt);
         menuItem  = new JMenuItem("LightMode");
         menuItem2 = new JMenuItem("DarkMode");
+        menuItem3 = new JMenuItem("Export Blockchain");
+        menuItem3.setFont(fnt2);
         menuItem.addActionListener(lforButton);
         menuItem2.addActionListener(lforButton);
+        menuItem3.addActionListener(lforButton);
         menu.add(menuItem);
         menu.add(menuItem2);
+        menu.add(menuItem3);
         menuBar.add(menu);
         
         
@@ -178,6 +196,10 @@ public class FlyChatGUI extends JFrame {
 
         //using Borderfactory to create a titled border, at setting its position
 //===================================================================================================================
+       
+        borderTitle2 = BorderFactory.createTitledBorder("User List");
+        borderTitle2.setTitleColor(Color.pink);
+        borderTitle2.setTitleJustification(borderTitle.CENTER);
         borderTitle = BorderFactory.createTitledBorder("Main Chat");
         borderTitle.setTitleColor(Color.pink);
         borderTitle.setTitleJustification(borderTitle.CENTER);
@@ -241,9 +263,11 @@ public class FlyChatGUI extends JFrame {
        
         sp = new JScrollPane(); //adding table to the scrollpane
         //table.setPreferredScrollableViewportSize(table.getPreferredSize());
-        sp.setPreferredSize(new Dimension(260, 30));
+        sp.setPreferredSize(new Dimension(260, 450));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
+        sp.setBorder(borderTitle2);
+        sp.setBackground(Color.BLACK);
         updateTable(data);
     
 
@@ -274,7 +298,8 @@ public class FlyChatGUI extends JFrame {
         //Setting x,y,width,height positions for GUI features
 //--------------------------------------------------------------------------------------------------------------------
         sendButton.setBounds(410, 150, 120, 50);
-        scrollPane1.setBounds(0, 0, 785, 542);
+        scrollPane1.setBounds(0, 0, 785, 532);
+       
     
      
 
@@ -312,7 +337,7 @@ public class FlyChatGUI extends JFrame {
         header.setForeground(Color.PINK);
         table.setRowHeight(30);
         table.getColumnModel().getColumn(0).setMinWidth(150);
-        sp.setViewportView(table);
+        sp.setViewportView(table);      
     }
 
     public void remoteSetTextBox(String[] text)
