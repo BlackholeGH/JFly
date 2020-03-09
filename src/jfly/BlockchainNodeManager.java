@@ -5,6 +5,7 @@
  */
 package jfly;
 
+import jutils.NetworkConfigurationState;
 import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.Stack;

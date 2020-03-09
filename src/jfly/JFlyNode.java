@@ -5,6 +5,8 @@
  */
 package jfly;
 
+import jutils.TextUtility;
+import jutils.NetworkConfigurationState;
 import java.util.concurrent.*;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -21,20 +23,31 @@ import java.util.regex.Pattern;
 /**
  *
  * @author Blackhole
- * TO DO:
- * Let socket connections time out and dispose the thread if so as unsuccessful
  */
 public class JFlyNode {
+    /**
+     * Returns the unix time as a long.
+     * @return The current unix epoch time as a long.
+     */
     public static long time()
     {
         Date date = new Date();
         return date.getTime();
     }
     private String recordedHostAddress = "";
+    /**
+     * Manually set the set host address for the node to a new address.
+     * @param addr The new host address.
+     * @param myManager The BlockchainNodeManager object that is performing ths request.
+     */
     public void resetAddress(String addr, BlockchainNodeManager myManager)
     {
         if(myManager == blockManager) { recordedHostAddress = addr; }
     }
+    /**
+     * Set a new record of the local host address if none has yet been set.
+     * @param addr The new local host address.
+     */
     public void setDefaultAddress(String addr)
     {
         if(recordedHostAddress.isEmpty())
@@ -42,6 +55,10 @@ public class JFlyNode {
             recordedHostAddress = addr;
         }
     }
+    /**
+     * Get the internal record of the host address of this node.
+     * @return The host address record, or the environment default if none is set.
+     */
     public String hostAddr()
     {
         try
@@ -51,19 +68,34 @@ public class JFlyNode {
         }
         catch(Exception e) { return "Retrieval failure"; }
     }
+    /**
+     * Get the hash ID of the node user.
+     * @return The user ID hash from IP lookup via the NetworkConfigurationState.
+     */
     public String getUserID()
     {
         return myNCS.getIDFromIP(hostAddr());
     }
     private Boolean pShutdown = false;
+    /**
+     * Is this node shutting down?
+     * @return Boolean true/false for shutdown state.
+     */
     public Boolean shuttingDown()
     {
         return pShutdown;
     }
+    /**
+     * Shutdown this node and close the application.
+     */
     public void shutdownNode()
     {
         shutdownNode(false);
     }
+    /**
+     * Shutdown this node and exit the application.
+     * @param relaunch True/false for if you want the application/node to then restart.
+     */
     public void shutdownNode(Boolean relaunch)
     {
         Runnable finalShutdownThread = () -> 
@@ -93,6 +125,9 @@ public class JFlyNode {
         };
         new Thread(finalShutdownThread).start();
     }
+    /**
+     * Ping all active OneLinkThreads to ensure that their remote targets are still online.
+     */
     public void pingThreads()
     {
         ArrayList ctdCopy = null;
@@ -114,12 +149,18 @@ public class JFlyNode {
             }
         }
     }
+    /**
+     * Start the "pinger" thread for pinging OneLinkThreads
+     */
     private void startPinger()
     {
         pingerThread = new Thread(new pingerRunnable(this));
         pingerThread.start();
     }
     Thread pingerThread = null;
+    /**
+     * This class is the Runnable implementation that runs the "connection autoping thread" operations.
+     */
     private class pingerRunnable implements Runnable
     {
         JFlyNode myNode = null;
@@ -144,11 +185,17 @@ public class JFlyNode {
         }
     }
     Thread coordinatorThread = null;
+    /**
+     * Start the "coordinator" thread.
+     */
     private void startCoordinator()
     {
         coordinatorThread = new Thread(new coordinatorRunnable(this));
         coordinatorThread.start();
     }
+    /**
+     * This class is the Runnable implementation that checks whether the current user should be the coordinator, and attempts to contact other network nodes periodically if this is the case.
+     */
     private class coordinatorRunnable implements Runnable
     {
         JFlyNode myNode = null;
@@ -182,6 +229,9 @@ public class JFlyNode {
             }
         }
     }
+    /**
+     * Close all open OneLinkThreads for this JFlyNode.
+     */
     public void closeAll()
     {
         try
@@ -204,6 +254,11 @@ public class JFlyNode {
     private ReentrantLock threadListLock = new ReentrantLock();
     private NetworkConfigurationState myNCS = new NetworkConfigurationState();
     private ArrayList<String> transientMessages = new ArrayList<String>();
+    /**
+     * Check whether this JFlyNode should forward a given transient message, and add forwarded transients to a list so they will not be forwarded in the future.
+     * @param transientPackage The contents of the transient message.
+     * @return True/false value for whether the transient message should be forwarded.
+     */
     public synchronized Boolean allowTransientForwarding(String transientPackage)
     {
         String tpHash = BlockchainNodeManager.SharedStateBlock.getHash(transientPackage);
@@ -235,14 +290,27 @@ public class JFlyNode {
             return true;
         }
     }
+    /**
+     * Gets the NetworkConfigurationState for this JFlyNode.
+     * @return The NetworkConfigurationState instance.
+     */
     public NetworkConfigurationState getNCS()
     {
         return myNCS;
     }
+    /**
+     * Gets the BlockchainNodeManager instance for this JFlyNode.
+     * @return The BlockchainNodeManager instance.
+     */
     public BlockchainNodeManager getBNM()
     {
         return blockManager;
     }
+    /**
+     * Returns a list of all OneLinkThread objects that represent a connection to a user with the given hash ID.
+     * @param hashIdentifier The hash ID of the user to search for.
+     * @return An array of OneLinkThreads that represent a connection to the user with the given hash ID.
+     */
     public OneLinkThread[] getThreadsForUser(String hashIdentifier)
     {
         String tryGetIP = myNCS.getIPFromID(hashIdentifier);
@@ -265,6 +333,10 @@ public class JFlyNode {
             return foundThreads.toArray(new OneLinkThread[0]);
         }
     }
+    /**
+     * Attempt to directly contact a given user on the network, both via open threads or a new connection.
+     * @param hashIdentifier The hash ID for the user to attempt to contact.
+     */
     public void attemptContact(String hashIdentifier)
     {
         OneLinkThread[] openConnects = getThreadsForUser(hashIdentifier);
@@ -287,6 +359,11 @@ public class JFlyNode {
         }
     }
     private String questNode = "";
+    /**
+     * Checks whether a quester connection request should be accepted, based on if a quester has recently been accepted.
+     * @param questerIP The IP of the requesting quester.
+     * @return True/false whether the quester should be accepted.
+     */
     public Boolean queryAcceptQuester(String questerIP)
     {
         Boolean accept = false;
@@ -310,11 +387,19 @@ public class JFlyNode {
         }
         else { return false; }
     }
+    /**
+     * Causes this JFlyNode to disconnect from its cluster and close all connections.
+     */
     public void leaveCluster()
     {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(getUserID()));
         closeAll();
     }
+    /**
+     * Retrieve the last x chat messages from the Blockchain.
+     * @param num The number of chat messages to retrieve.
+     * @return An array of the last x messages.
+     */
     public String[] getLastMessages(int num)
     {
         String[] out = blockManager.getLast(num);
@@ -324,17 +409,35 @@ public class JFlyNode {
         }
         return out;
     }
+    /**
+     * Sends a new message from this node.
+     * @param message The text of the new message to send.
+     */
     public void sendMessage(String message)
     {
         message = TextUtility.sanitizeText(message);
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
     }
+    /**
+     * Returns a Blockchain block from a given hash.
+     * @param hash The hash of the block to retrieve.
+     * @return The String representation of a Blockchain block.
+     */
     public synchronized String pullOneBlockByHash(String hash)
     {
         String pulledBlock = blockManager.getByHash(hash);
         if(pulledBlock == null) { return "BLOCK_HASH_NOT_FOUND"; }
         else{ return pulledBlock; }
     }
+    /**
+     * Attempt to integrate a retrieved block into the Blockchain.
+     * @param data The String representation of a Blockchain block.
+     * @return A String representing the result of the attempted integration.
+     * "SUCCESSFULLY_INTEGRATED:[HASH]" : The block with hash [HASH] was successfully integrated.
+     * "FAILED_REQUEST_PREVIOUS" : The block integration failed, as the previous block in the chain was not present and should be requested.
+     * "BLOCK_ALREADY_ADDED" : Block not added as the Blockchain already contained it.
+     * "FAILED_OTHER_UNSPECIFIED" : The block integration failed for an unspecified reason.
+     */
     public synchronized String tryOneBlock(String data)
     {
         Object[] trueAddReturn = blockManager.addExtantBlockToChain(data);
@@ -351,6 +454,11 @@ public class JFlyNode {
         else if(attemptAdd == 4) { return "BLOCK_ALREADY_ADDED"; }
         else { return "FAILED_OTHER_UNSPECIFIED"; }
     }
+    /**
+     * Send an OutputJobInfo to this JFlyNode's OneLinkThreads.
+     * @param job The OutputJobInfo to send.
+     * @param blacklist An array of any OneLinkThread objects that the job should not be sent to.
+     */
     public void sendJobToThreads(OutputJobInfo job, OneLinkThread[] blacklist)
     {
         threadListLock.lock();
@@ -377,6 +485,10 @@ public class JFlyNode {
         }
         finally { threadListLock.unlock(); }
     }
+    /**
+     * Add a new OneLinkThread object to the registry of this JFlyNode.
+     * @param thread The OneLinkThread to register.
+     */
     public void registerThread(OneLinkThread thread)
     {
         threadListLock.lock();
@@ -386,6 +498,11 @@ public class JFlyNode {
         }
         finally { threadListLock.unlock(); }
     }
+    /**
+     * Unregister a OneLinkThread from the registry of this JFlyNode.
+     * @param thread The thread to unregister.
+     * @param skipBlocking True/false value for whether or not to skip the threadlist blocking (lock object).
+     */
     public void unregisterThread(OneLinkThread thread, Boolean skipBlocking)
     {
         if(!skipBlocking) { threadListLock.lock(); }
@@ -396,20 +513,47 @@ public class JFlyNode {
         finally { if(!skipBlocking) { threadListLock.unlock(); } }
     }
     String usr = null;
+    /**
+     * Get the local record of the username for this node's user.
+     * @return The local username record.
+     */
     public String getLocalUsername()
     {
         return usr;
     }
+    /**
+     * Set a new local record of the username for this node's user.
+     * @param username The new username to set.
+     */
     public void setLocalUsername(String username)
     {
         usr = username;
     }
+    /**
+     * The entry point for this program.
+     * @param args Command line arguments.
+     */
     public static void main(String[] args)
     {
-        new JFlyNode();
+        JFlyNode.makeJFlyNode();
     }
     private FlyLauncher launcher = null;
-    public JFlyNode()
+    private static Boolean single = false;
+    /**
+     * Create the instance of JFlyNode, singleton style.
+     */
+    public static void makeJFlyNode()
+    {
+        if(!single)
+        {
+            single = true;
+            new JFlyNode();
+        }
+    }
+    /**
+     * The JFlyNode constructor. This initialises the directory of OneLinkThreads, the BlockchainNodeManager and starts the FlyLauncher.
+     */
+    private JFlyNode()
     {
         ConnectionThreadDirectory = new ArrayList();
         blockManager = new BlockchainNodeManager(this);
@@ -420,6 +564,10 @@ public class JFlyNode {
         }
         catch(Exception e) { }*/
     }
+    /**
+     * Wipes the registered FlyLauncher object from the JFlyNode if it is the same as the FlyLauncher passed.
+     * @param fl The FlyLauncher object to test for potential wiping.
+     */
     public void wipeLauncher(FlyLauncher fl)
     {
         if(fl == launcher)
@@ -427,7 +575,9 @@ public class JFlyNode {
             launcher = null;
         }
     }
-    //Insecure without verification hashing with 2-key encryption. Idea for later?
+    /**
+     * Issues a new transient message to the network indicating that the given JFlyNode is still connected.
+     */
     public void issueExistenceTransient()
     {
         String transientBody = "responseping+-+" + getUserID();
@@ -437,6 +587,10 @@ public class JFlyNode {
     private Hashtable seekers = new Hashtable();
     private final int seekTolerance = 20000;
     private final int contactTolerance = 20000;
+    /**
+     * Perform seeking operations across the network for a given user.
+     * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
+     */
     public synchronized void crossNetworkSeekNode(String userIDorResponseTransient)
     {
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
@@ -480,6 +634,10 @@ public class JFlyNode {
             }
         }
     }
+    /**
+     * Author a disconnect on behalf of a network user who has timed out.
+     * @param hashID The user hash ID for the timed out user.
+     */
     private void issueTimeout(String hashID)
     {
         for(OneLinkThread deadThread : getThreadsForUser(hashID))
@@ -498,15 +656,27 @@ public class JFlyNode {
     }
     private ExecutorService receivePool = null;
     private int myListenPort = 44665;
+    /**
+     * Get the manually set connection listener port.
+     * @return The port number.
+     */
     public int getManualListenPort()
     {
         return myListenPort;
     }
+    /**
+     * Manually set the incoming connection listen port for this JFlyNode.
+     * @param port The new port to listen on.
+     */
     public void setManualListenPort(int port)
     {
         if(port > 65535 || port < 0) { myListenPort = defaultPort; }
         else { myListenPort = port; }
     }
+    /**
+     * Start the network protocol for an initial cluster node (waits for an external connection).
+     * @throws IOException 
+     */
     public void openReceiveAndWait() throws IOException
     {
         startPinger();
@@ -530,10 +700,18 @@ public class JFlyNode {
         }
     }
     private FlyChatGUI myGUI = null;
+    /**
+     * Gets the FlyChatGUI instance for this JFlyNode.
+     * @return The FlyChatGUI instance.
+     */
     public FlyChatGUI getGUI()
     {
         return myGUI;
     }
+    /**
+     * Start the network protocol for a remote connection (connects to a remote node, before also listening for incoming connections).
+     * @throws IOException 
+     */
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
         startPinger();
@@ -550,6 +728,9 @@ public class JFlyNode {
             }
         }
     }
+    /**
+     * This class contains information for an job to be dispatched by 
+     */
     public static class OutputJobInfo
     {
         enum JobType { SINGLE_DISPATCH, MULTIPLE_DISPATCH, INTERNAL_LOCK };
