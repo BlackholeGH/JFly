@@ -55,12 +55,14 @@ public class BlockchainNodeManager {
     {
         ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
         Stack<String> hashClone = (Stack<String>)hashChain.clone();
+        //A negative depth means the whole blockchain will be scanned.
         if(depth < 0)
         {
             depth = hashClone.size();
             newUsers.clear();
         }
         Stack<String> hashCloneReOrder = new Stack<String>();
+        //The hash list is referenced in order to retrieve the blocks. The order of hashes is inverted to retrieve blocks in chronological order.
         for(int i = 0; i < depth; i++)
         {
             hashCloneReOrder.add(hashClone.pop());
@@ -68,8 +70,10 @@ public class BlockchainNodeManager {
         for(int i = 0; i < depth; i++)
         {
             SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
+            //A GROUP_REGISTRAR block is only read from if it is marked as "valid", in practice being only the initial initialization registrar received by this JFly node.
             if(current.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && validRegistrarHash(current.getHash()))
             {
+                //A GROUP_REGISTRAR block contains data for all users on the network at the time that it was published.
                 String[] regiUsers = current.getContentData().split(Pattern.quote("/-/"), -1);
                 for(String usr : regiUsers)
                 {
@@ -77,6 +81,8 @@ public class BlockchainNodeManager {
                     newUsers.add(newUser);
                 }
             }
+            //Parsing a USER_JOINED block adds a newly joined user to the list of users.
+            //The individual user ID for a given user will be a hash of the hash of their USER_JOINED block, linking their identity intrisically to the blockchain.
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
@@ -84,6 +90,7 @@ public class BlockchainNodeManager {
                 newUser.setID(SharedStateBlock.getHash(current.getHash()));
                 newUsers.add(newUser);
             }
+            //Parsing a USER_JOINED block removes a user who has left from the list of users.
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {
                 NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(current.getContentData());
@@ -100,14 +107,17 @@ public class BlockchainNodeManager {
                 if(oldUser != null)
                 {
                     newUsers.remove(oldUser);
+                    //If a user has left the cluster, then any attempts to contact them must be cancelled with a seeker purge operation on the JFlyNode.
                     myNode.crossNetworkSeekNode("", oldUser.getID());
                 }
             }
         }
+        //The ammended user list is written to this node's NetworkConfigurationState.
         cur.reWriteAll(newUsers);
         FlyChatGUI myGUI = myNode.getGUI();
         if(myGUI != null)
         {
+            //The user list on the GUI is updated after these config states are updated.
             myGUI.updateTable(cur.getTableData());
         }
         System.out.println("Network configuration database updated (Depth of " + depth + "): ");
@@ -124,6 +134,7 @@ public class BlockchainNodeManager {
         if(depth > hashChain.size()) { depth = hashChain.size(); }
         Stack<String> hashClone = (Stack<String>)hashChain.clone();
         Stack<String> hashCloneReOrder = new Stack<String>();
+        //The hash list is referenced in order to retrieve the blocks. The order of hashes is inverted to retrieve blocks in chronological order.
         for(int i = 0; i < depth; i++)
         {
             hashCloneReOrder.add(hashClone.pop());
@@ -131,30 +142,33 @@ public class BlockchainNodeManager {
         for(int i = 0; i < depth; i++)
         {
             SharedStateBlock current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
+            //MESSAGE blocks are displayed with the author via username lookup, author time and message text.
             if(current.getContentType() == SharedStateBlock.ContentType.MESSAGE)
             {
                 Date mDate = new Date(current.getCreationTime());
-                //Locale locale = new Locale("en", "EN");
                 DateFormat dateFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
                 msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " (" + dateFormat.format(mDate) + ") : " + current.getContentData());
             }
+            //User joining notifications are also displayed in the chat window.
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 Date mDate = new Date(current.getCreationTime());
                 msgs.add(myNode.getNCS().getUserNameFromID(SharedStateBlock.getHash(current.getHash())) + " joined this cluster at " + mDate.toString() + ".");
             }
+            //User leaving notifications are also displayed in the chat window.
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {
                 //Date mDate = new Date(current.getCreationTime());
                 msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " left this cluster.");
             }
+            //System utility messages are also displayed in the chat window.
             else if(current.getContentType() == SharedStateBlock.ContentType.SYSTEM_UTIL)
             {
-                //Date mDate = new Date(current.getCreationTime());
                 msgs.add(current.getContentData());
             }
         }
         String[] out = new String[msgs.size()];
+        //The retrieved message display Strings are returned as an array.
         for(int i = 0; i < out.length; i++)
         {
             out[i] = msgs.get(i);
@@ -185,19 +199,24 @@ public class BlockchainNodeManager {
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
         System.out.println("Attempting to author a new block: " + newContentType.toString() + " : " + newContentData);
+        //A new block is created with the data for an attempted author operation.
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
+        //We attempt to add the new block to the blockchain.
         Object[] authorRes = addExtantBlockToChain(newBlock.toString());
         int adder = (int)authorRes[0];
+        //If the block was successfully authored and integrated, it is forwarded to all other connected nodes.
         if(adder == 0 || adder == 1)
         {
             JFlyNode.OutputJobInfo afterAuthorJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, newBlock.toString(), "JFLYCHAINBLOCK");
             myNode.sendJobToThreads(afterAuthorJob, null);
+            //If the newly authored block is a USER_JOINED block, then the IP of this node's user is confirmed and written to the JFlyNode.
             if(newBlock.getContentType() == SharedStateBlock.ContentType.USER_JOINED)
             {
                 NetworkConfigurationState.UserInfo authoredUser = NetworkConfigurationState.UserInfo.fromString(newBlock.getContentData());
                 myNode.resetAddress(authoredUser.getIP(), this);
             }
         }
+        //Authoring a new block updates the chat window.
         myNode.updateChatWindow();
         //calculateConfigs(myNode.getNCS(), 1);
     }
@@ -207,6 +226,7 @@ public class BlockchainNodeManager {
      */
     public String tryOneHash()
     {
+        //This function is useful for testing the hashing function.
         Random rnd = new Random();
         return (new SharedStateBlock(this, rnd.nextDouble() + "")).getHash();
     }
@@ -252,6 +272,7 @@ public class BlockchainNodeManager {
         {
             if(hashChain.size() > 0)
             {
+                //A block is not added to the chain if the chain already seems to contain it (derived from hash).
                 if(sharedStateBlocks.containsKey(extBlock.getHash()))
                 {
                     calculateConfigs(myNode.getNCS(), lastDepth);
@@ -260,8 +281,11 @@ public class BlockchainNodeManager {
                 }
                 String lastBlockHash = lastHash();
                 Stack<SharedStateBlock> poppedBlocks = new Stack<SharedStateBlock>();
+                //If the block to be added does not follow on from the previous block (by hash record), we check whether it should be placed further down in the blockchain.
+                //The depth to which a block can be inserted could be limited as desired to prevent retroactive blockchain modification.
                 while(!extBlock.getLastBlockHash().equals(lastBlockHash) || lastBlockHash.length() == 0)
                 {
+                    //The block hashes are retrieved in an attempt to locate an insertion point.
                     System.out.println("Popping block...");
                     if(hashChain.size() == 1)
                     {
@@ -275,6 +299,7 @@ public class BlockchainNodeManager {
                         }
                         calculateConfigs(myNode.getNCS(), lastDepth);
                         lastDepth = 0;
+                        //If the previous hash of the block to be added is not in the blockchain, this method returns and requests the missing previous block.
                         return new Object[] { 2, extBlock.getHash() };
                     }
                     if(lastBlockHash.length() > 0)
@@ -285,7 +310,9 @@ public class BlockchainNodeManager {
                     }
                     lastBlockHash = hashChain.peek();
                 }
-                Boolean reinsertTriggered = false; //Maybe rework this mechanism later to be more elegant
+                Boolean reinsertTriggered = false;
+                //If blocks have been popped to reinsert the block further down in the blockchain, then they must be sorted through to place the block in the correct location chronologically.
+                //This is because this sort of discrepancy means that the blockchain has temporarily forked on two different nodes. The two forks must be re-merged as per their author times.
                 if(poppedBlocks.size() > 0)
                 {
                     System.out.println("Performing retrieval chain (ebct = " + extBlock.getCreationTime() + "):");
@@ -302,6 +329,8 @@ public class BlockchainNodeManager {
                             extBlock.setLastBlockHash(lastBlockHash);
                         }
                         curReInsert.setLastBlockHash(lastBlockHash);
+                        //The block is added where it's author time fits in chronologically.
+                        //If there is a time collision, then the order of insertion depends on the alphabetical order of the hashes of the block data.
                         if(!extPut && ((extBlock.getCreationTime() < curReInsert.getCreationTime()) || (extBlock.getCreationTime() == curReInsert.getCreationTime() && comparisonHash.compareTo(curReInsert.getHash()) < 0)))
                         {
                             System.out.println("Putting extblock");
@@ -320,6 +349,7 @@ public class BlockchainNodeManager {
                         sharedStateBlocks.put(lastBlockHash, curReInsert);
                         System.out.println(curReInsert.toString());
                     }
+                    //If the new block has still not yet been added, it is added.
                     if(!extPut)
                     {
                         System.out.println("Putting extblock");
@@ -332,6 +362,7 @@ public class BlockchainNodeManager {
                         System.out.println(extBlock.toString());
                     }
                 }
+                //If the block did not need to be retroactively reinserted, then the new block is simply added to the chain.
                 else
                 {
                     lastDepth++;
@@ -339,29 +370,36 @@ public class BlockchainNodeManager {
                     hashChain.add(lastBlockHash);
                     sharedStateBlocks.put(lastBlockHash, extBlock);
                 }
+                //If the tolerance value allows it, then a newly integrated GROUP_REGISTRAR is marked as valid to be read from to receive configs (i.e. if it is the initializing registrar block)
                 if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
                 {
                     validRegistrars.add(extBlock.getHash());
                     System.out.println("Added valid registrar");
                     registrarTolerance--;
                 }
+                //Adding a new block causes Network Config state to be recalculated. lastDepth indicates the number of new blocks to be scanned.
+                //If a reinsert occurred, then the configs are calculated from the entire blockchain in order to prevent repeated processing.
                 calculateConfigs(myNode.getNCS(), reinsertTriggered ? -1 : lastDepth);
                 lastDepth = 0;
                 if(reinsertTriggered) { System.out.println("Finished retrival chaining and putting..."); }
                 return new Object[] { 0, extBlock.getHash() };
             }
+            //If the blockchain does not yet contain any blocks, the new block is written immediately (to initialize this node).
             else
             {
                 String extBlockHash = extBlock.getHash();
                 lastDepth++;
                 hashChain.add(extBlockHash);
                 sharedStateBlocks.put(extBlockHash, extBlock);
+                //If the tolerance value allows it, then a newly integrated GROUP_REGISTRAR is marked as valid to be read from to receive configs (i.e. if it is the initializing registrar block)
                 if(extBlock.getContentType() == SharedStateBlock.ContentType.GROUP_REGISTRAR && registrarTolerance > 0)
                 {
                     validRegistrars.add(extBlockHash);
                     System.out.println("Added valid registrar");
                     registrarTolerance--;
                 }
+                //Adding a new block causes Network Config state to be recalculated. lastDepth indicates the number of new blocks to be scanned.
+                //If a reinsert occurred, then the configs are calculated from the entire blockchain in order to prevent repeated processing.
                 calculateConfigs(myNode.getNCS(), lastDepth);
                 lastDepth = 0;
                 return new Object[] { 1, extBlock.getHash() };
@@ -369,6 +407,8 @@ public class BlockchainNodeManager {
         }
         else
         {
+            //Adding a new block causes Network Config state to be recalculated. lastDepth indicates the number of new blocks to be scanned.
+            //If a reinsert occurred, then the configs are calculated from the entire blockchain in order to prevent repeated processing.
             calculateConfigs(myNode.getNCS(), lastDepth);
             lastDepth = 0;
             return new Object[] { 3, extBlock.getHash() };
@@ -463,6 +503,7 @@ public class BlockchainNodeManager {
             localPrevBlockHash = prevHash;
             contentType = newContentType;
             Date createDate = new Date(JFlyNode.time());
+            //A JFly blockchain genesis block contains default data to initialize the blockchain.
             if(newContentType == ContentType.GENESIS)
             {
                 contentData = "JFly blockchain GENESIS block. New cluster was created at " + createDate.toString() + ". #BIGDUCKROBOT";
@@ -476,6 +517,7 @@ public class BlockchainNodeManager {
         }
         /**
          * The initial hashing algorithm for JFly blockchain blocks.
+         * This hashing operation is repeated to get the "true" hash value for some data.
          * @param temp The initial data to hash.
          * @return The hashed data.
          */
@@ -490,6 +532,7 @@ public class BlockchainNodeManager {
             int rolling = blockSize;
             int tempTotal = 0;
             String collate = "";
+            //The hashing function is based on repeated modulus arithmatic on various totals derived from the char values of the data.
             do
             {
                 blockSize++;
@@ -570,7 +613,7 @@ public class BlockchainNodeManager {
             return getRawHash(getRawHash(getRawHash(myDat())));
         }
         /**
-         * Generates a hash of any String data.
+         * Generates a true hash of any String data.
          * @param data The data to be hashed.
          * @return The hash of the data.
          */

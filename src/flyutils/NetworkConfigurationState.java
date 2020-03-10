@@ -20,6 +20,8 @@ public class NetworkConfigurationState {
     public static class UserInfo
     {
         private String iP;
+        //The term identityHash is used as in JFly the unique identifier of a user is the hash of the hash value of the blockchain block that records them joining the cluster.
+        //This ensures that every user is directly linked to a given login event.
         private String identityHash;
         private String userName;
         /**
@@ -242,6 +244,7 @@ public class NetworkConfigurationState {
             i++;
             out = out + i + ": " + ui.getIP() + ", " + ui.getID() + ", " + ui.getUserName() + "\n";
         }
+        //Generally, this is used to print out a list of users on the network.
         return out;
     }
     /**
@@ -258,6 +261,7 @@ public class NetworkConfigurationState {
             data[i][1] = ui.getID();
             i++;
         }
+        //This table data can then be displayed using a JTable.
         return data;
     }
     /**

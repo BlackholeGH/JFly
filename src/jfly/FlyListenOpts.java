@@ -32,7 +32,9 @@ public class FlyListenOpts extends FlyLauncher
     public FlyListenOpts(JFlyNode node)
     {
         super(node);
+        //This options pane should be disposed when closed.
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        //Display this options window.
         viewOptions();
     }
     /**
@@ -40,13 +42,17 @@ public class FlyListenOpts extends FlyLauncher
      */
     public void viewOptions()
     {
+        //Set window icons.
         setIconImages(getLogoIcons());
         
+        //Create base panel for the options.
         JPanel optionsPanel = new JPanel(new BorderLayout());
         
+        //Create top label panel for the options pane.
         JPanel topLabel = new JPanel();
         topLabel.setLayout(new BoxLayout(topLabel, BoxLayout.Y_AXIS));
         
+        //Create main window label.
         JLabel introDialog = new JLabel("Node listener options:");
         introDialog.setFont(fntBold);
         introDialog.setHorizontalAlignment(JLabel.CENTER);
@@ -56,9 +62,11 @@ public class FlyListenOpts extends FlyLauncher
         topLabel.add(Box.createVerticalStrut(10));
         optionsPanel.add(topLabel, BorderLayout.NORTH);
         
+        //Create central options panel for the options pane.
         JPanel mainOptions = new JPanel();
         mainOptions.setLayout(new BoxLayout(mainOptions, BoxLayout.Y_AXIS));
         
+        //Create explanatory label for this options pane. These labels are html formatted.
         JLabel listExpl = new JLabel("<html><p align=\"center\">You can set a custom port for JFly to listen to incoming connections on. Note that the default JFly port is 44665. <b>Only change this if you know that you will be receiving connections from a different port.</b></p></html>");
         listExpl.setFont(fntMid);
         listExpl.setAlignmentX(CENTER_ALIGNMENT);
@@ -66,6 +74,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(listExpl);
         mainOptions.add(Box.createVerticalStrut(10));
         
+        //Create label and text field for the port to listen on.
         JLabel portLabel = new JLabel("Listener port");
         portLabel.setFont(fntBold);
         portLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -83,6 +92,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(portField);
         mainOptions.add(Box.createVerticalStrut(10));
         
+        //Create more explanatory dialogue labels.
         JLabel iPexpl = new JLabel("<html><p align=\"center\">External connections must also be directed towards your machine's IP address.</p></html>");
         iPexpl.setFont(fntMid);
         iPexpl.setHorizontalAlignment(JLabel.CENTER);
@@ -90,6 +100,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(iPexpl);
         mainOptions.add(Box.createVerticalStrut(10));
         
+        //Create label to display local IP address to indicate connection target for other nodes.
         JLabel locIP = new JLabel("<html><p align=\"center\">Your current local IP address is: <b>" + myNode.hostAddr() + "</b></p></html>");
         locIP.setFont(fnt);
         locIP.setHorizontalAlignment(JLabel.CENTER);
@@ -97,7 +108,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(locIP);
         mainOptions.add(Box.createVerticalStrut(10));
         
-        //Maybe check out JEditorPane and HyperLinkListener
+        //Create dialogue label to explain internet connections.
         JLabel pubExpl = new JLabel("<html><p align=\"center\">If you have port forwarding enabled, JFly can also accept internet connections targetting your public IP. You can find your public IP at: <b><a href=\"https://whatismyipaddress.com/\">https://whatismyipaddress.com/</a></b></p></html>");
         pubExpl.setFont(fntMid);
         pubExpl.setHorizontalAlignment(JLabel.CENTER);
@@ -105,6 +116,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(pubExpl);
         mainOptions.add(Box.createVerticalStrut(10));
         
+        //Create dialogue label to explain remote internet connections.
         JLabel interNode = new JLabel("<html><p align=\"center\">Receiving an external JFly connection will automatically reinitialize your node as an internet node. Be aware that your public IP may be subject to change by your ISP.</p></html>");
         interNode.setFont(fntMid);
         interNode.setAlignmentX(CENTER_ALIGNMENT);
@@ -112,6 +124,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(interNode);
         mainOptions.add(Box.createVerticalStrut(20));
         
+        //Create a button to manually set the port value. This is the same as just removing focus from the port text field, but it is easier for the user to have a button to click.
         JButton setButton = new JButton("Set");
         setButton.setToolTipText("Manually set the port value.");
         setButton.setActionCommand("setport");
@@ -120,6 +133,7 @@ public class FlyListenOpts extends FlyLauncher
         mainOptions.add(setButton);
         mainOptions.add(Box.createVerticalStrut(10));
         
+        //Create a button to close this options window.
         JButton closeButton = new JButton("Close");
         closeButton.setToolTipText("Close the node listener options.");
         closeButton.setActionCommand("close");
@@ -127,19 +141,23 @@ public class FlyListenOpts extends FlyLauncher
         closeButton.setAlignmentX(CENTER_ALIGNMENT);
         mainOptions.add(closeButton);
         
+        //Create edge border.
         mainOptions.setBorder(new EmptyBorder(10,10,10,10));
         
         optionsPanel.add(mainOptions, BorderLayout.CENTER);
         
         add(optionsPanel);
         
+        //Set window size.
         setPreferredSize(new Dimension(600, 500));
         pack();
         
+        //Set window title.
         setTitle("JFly Options");
         setLocationRelativeTo(null);
 
-        setVisible(true);  // Needed to ensure that the items can be seen.
+        //Set window pane to be visible.
+        setVisible(true);
     }
     /**
      * actionPerformed() override to handle ActionEvents.
@@ -150,10 +168,14 @@ public class FlyListenOpts extends FlyLauncher
     {
         switch(ae.getActionCommand())
         {
+            //If the listener port is set;
             case "setport":
+                //The port validation from FlyLauncher is reused.
                 super.actionPerformed(ae);
+                //However, the resulting value in targetPort is then used to set the JFlyNode's listener port instead of open a new connection.
                 myNode.setManualListenPort(targetPort);
                 break;
+            //If the close button is pressed, the options window pane is disposed.
             case "close":
                 this.dispose();
                 break;

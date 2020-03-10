@@ -262,6 +262,9 @@ public class JFlyNode {
     private String myID = "";
     private BlockchainNodeManager blockManager;
     private ArrayList ConnectionThreadDirectory;
+    /**
+     * threadListLock is a Reentrant lock that ensures that access to the thread list (ConnectionThreadDirectory) is thread safe.
+     */
     private ReentrantLock threadListLock = new ReentrantLock();
     private NetworkConfigurationState myNCS = new NetworkConfigurationState();
     private ArrayList<String> transientMessages = new ArrayList<String>();
@@ -272,19 +275,23 @@ public class JFlyNode {
      */
     public synchronized Boolean allowTransientForwarding(String transientPackage)
     {
+        //A given transient package is given a unique identifier by hashing it.
         String tpHash = BlockchainNodeManager.SharedStateBlock.getHash(transientPackage);
         String foundStr = null;
         ArrayList<String> expiredTransients = new ArrayList();
+        //The existing record of transients that have passed through this node is referenced
         for(String s : transientMessages)
         {
             String[] strs = s.split(Pattern.quote(":~:"), -1);
             long timeSent = Long.decode(strs[0]);
+            //If the transient was recorded more than 30 seconds ago, the record is discarded
             if(time() - timeSent > 30000) { expiredTransients.add(s); }
             if(strs[1].equals(tpHash))
             {
                 foundStr = s;
             }
         }
+        //Removing the expired transients
         for(String eT : expiredTransients)
         {
             //if(eT == foundStr) { continue; }
@@ -293,10 +300,13 @@ public class JFlyNode {
         if(foundStr != null)
         {
             //transientMessages.remove(foundStr);
+            //Transients already on the list should not be forwarded again
             return false;
         }
         else
         {
+            //Otherwise, new transients are added to the list and then can be forwarded.
+            //This mechanism means that a given transient message only propogates through the network once.
             transientMessages.add(time() + ":~:" + tpHash);
             return true;
         }
@@ -324,10 +334,12 @@ public class JFlyNode {
      */
     public OneLinkThread[] getThreadsForUser(String hashIdentifier)
     {
+        //The user's hash ID is used to retrieve an IP address, if one is recorded.
         String tryGetIP = myNCS.getIPFromID(hashIdentifier);
         if(tryGetIP.equals("UNKNOWN_USER")) { return null; }
         ArrayList<OneLinkThread> foundThreads = new ArrayList();
         threadListLock.lock();
+        //Any OneLinkThreads connected to this IP are then searched for.
         try
         {
             for(Object thread : ConnectionThreadDirectory)
@@ -341,6 +353,7 @@ public class JFlyNode {
         if(foundThreads.isEmpty()) { return null; }
         else
         {
+            //The OneLinkThreads are returned if any are found.
             return foundThreads.toArray(new OneLinkThread[0]);
         }
     }
@@ -350,9 +363,11 @@ public class JFlyNode {
      */
     public void attemptContact(String hashIdentifier)
     {
+        //When attempting to contact a node directly, first we check for any open sockets from this node to that node.
         OneLinkThread[] openConnects = getThreadsForUser(hashIdentifier);
         if(openConnects != null)
         {
+            //If a socket connection already exists, the remote node is queried.
             OutputJobInfo missedJob = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
             for(OneLinkThread olt : openConnects)
             {
@@ -361,9 +376,12 @@ public class JFlyNode {
         }
         else
         {
+            //If no current connection exists, a new ClientStyleThread is created to try and contact that node.
             String iP = myNCS.getIPFromID(hashIdentifier);
             if(!iP.equals("UNKNOWN_USER"))
             {
+                //The thread is set to "Quester" mode, where it will try to contact the node and indicate that it is trying to establish a connection in this way.
+                //The remote note can decline this sort of connection if it determines it is unneccessary.
                 ClientStyleThread questThread = new ClientStyleThread(new Object[] { iP, defaultPort }, this, true);
                 new Thread(questThread).start();
             }
@@ -378,6 +396,7 @@ public class JFlyNode {
     public Boolean queryAcceptQuester(String questerIP)
     {
         Boolean accept = false;
+        //A node should only accept one quester request at a time, so one will not be accepted if one has been accepted in the past 30 seconds.
         if(!questNode.isEmpty())
         {
             try
@@ -393,6 +412,7 @@ public class JFlyNode {
         }
         if(accept)
         {
+            //When a quester is accepted, the time of the acceptance and the IP of the quester are recorded.
             questNode = JFlyNode.time() + ":" + questerIP;
             return true;
         }
@@ -403,11 +423,13 @@ public class JFlyNode {
      */
     public void leaveCluster()
     {
+        //When the node leaves a cluster, it publishes a blockchain block to indicate this.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(getUserID()));
         closeAll();
     }
     public synchronized void updateChatWindow()
     {
+        //Only the last chat messages to a depth of 50 are retrieved.
         if(myGUI != null) { myGUI.remoteSetTextBox(getLastMessages(50)); }
     }
     /**
@@ -420,6 +442,7 @@ public class JFlyNode {
         String[] out = blockManager.getLast(num);
         for(int i = 0; i < out.length; i++)
         {
+            //Retrieved messages are desanitized to re-add filtered delimiter strings
             out[i] = TextUtility.desanitizeText(out[i]);
         }
         return out;
@@ -430,7 +453,9 @@ public class JFlyNode {
      */
     public void sendMessage(String message)
     {
+        //Messages to be sent have to be sanitized to remove delimiter strings
         message = TextUtility.sanitizeText(message);
+        //A new message block is authored to the blockchain.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, message);
     }
     /**
@@ -455,6 +480,7 @@ public class JFlyNode {
      */
     public synchronized String tryOneBlock(String data)
     {
+        //The string result is determined from the return of addExtantBlockToChain().
         Object[] trueAddReturn = blockManager.addExtantBlockToChain(data);
         int attemptAdd = (int)trueAddReturn[0];
         if(attemptAdd == 2)
@@ -520,6 +546,7 @@ public class JFlyNode {
      */
     public void unregisterThread(OneLinkThread thread, Boolean skipBlocking)
     {
+        //Blocking may need to be skipped if this method is called from within another iteration operation through the ConnectionThreadDirectory.
         if(!skipBlocking) { threadListLock.lock(); }
         try
         {
@@ -617,10 +644,12 @@ public class JFlyNode {
      */
     public synchronized void crossNetworkSeekNode(String userIDorResponseTransient, String purge)
     {
+        //The purge functionality is used to remove a node from the seekers list, i.e. if a new USER_LEFT block is published for that node.
         if(purge != null)
         {
             if(seekers.containsKey(purge)) { seekers.remove(purge); }
         }
+        //If the input is a transient message, then it is checked to see if it is a response ping from a node being sought.
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
             String findUsrID = (userIDorResponseTransient.split(Pattern.quote(":~:"), -1)[1]).split(Pattern.quote("+-+"), -1)[1];
@@ -629,6 +658,7 @@ public class JFlyNode {
                 seekers.put(findUsrID, "RESPONSE_RECEIVED|RESPONSE_RECEIVED");
             }
         }
+        //If the input is a user's hash ID, then we attempt to contact that user with a transient message to be relayed.
         else if(userIDorResponseTransient.startsWith("USERHASHID"))
         {
             String userHashID = userIDorResponseTransient.replaceAll(Pattern.quote("USERHASHID|"), "");
@@ -640,6 +670,7 @@ public class JFlyNode {
                 sendJobToThreads(seekingTransient, null);
             }
         }
+        //Otherwise, the seekers list is simply updated.
         else
         {
             if(seekers.size() > 0)
@@ -650,6 +681,7 @@ public class JFlyNode {
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
                     long seekTime = (long)seekers.get(hashIDo);
+                    //If the seek time has expired, then a transient is sent out with instructions for other nodes to attempt to directly contact the missing node.
                     if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
                     {
                         seekers.put("CONTACT|" + hashID, time());
@@ -680,6 +712,7 @@ public class JFlyNode {
             }
             catch(IOException e) {}
         }
+        //If a user has timed out and cannot be contacted, a USER_LEFT block is authored on their behalf.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(hashID) + "+-+presumed_disconnect_timeout");
         for(String iD : myNCS.getUserIDs())
         {
@@ -711,10 +744,12 @@ public class JFlyNode {
      */
     public void openReceiveAndWait() throws IOException
     {
+        //The pinger and coordinator threads are started.
         startPinger();
         startCoordinator();
         myGUI = new FlyChatGUI(this);
         if(myListenPort > 65535 || myListenPort < 0) { myListenPort = defaultPort; }
+        //As this node is starting a new cluster, it initializes the Blockchain with a GENESIS block.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.GENESIS, "");
         usr = JOptionPane.showInputDialog(null, "Choose a username!", "Input username", JOptionPane.INFORMATION_MESSAGE);
         usr = TextUtility.sanitizeText(usr);
@@ -722,8 +757,11 @@ public class JFlyNode {
         {
             usr = "IP User " + hostAddr();
         }
+        //The user info for this node is obtained.
         NetworkConfigurationState.UserInfo me = new NetworkConfigurationState.UserInfo(hostAddr(), "", usr);
+        //Then a USER_JOINED block is authored for this user.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
+        //New connections are then listened for.
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(myListenPort)) {
             while (!shuttingDown()) {
@@ -746,13 +784,16 @@ public class JFlyNode {
      */
     public void sendConnectAndOpen(String iP, int rPort) throws IOException
     {
+        //The pinger and coordinator threads are started.
         startPinger();
         startCoordinator();
         myGUI = new FlyChatGUI(this);
         blockManager.addRegistrarTolerance(1);
+        //We attempt to connect to an existing node.
         ClientStyleThread connectThread = new ClientStyleThread(new Object[] { iP, rPort }, this, false);
         connectThread.setDemandIntroduction();
         new Thread(connectThread).start();
+        //New connections are then listened for.
         receivePool = Executors.newFixedThreadPool(500);
         try (ServerSocket listener = new ServerSocket(defaultPort)) {
             while (!shuttingDown()) {
@@ -844,6 +885,7 @@ public class JFlyNode {
             super(myNode);
             try
             {
+                //ServerStyleThreads accept already established socket connections.
                 mySocket = myAcceptedConnection;
                 inLine = new Scanner(mySocket.getInputStream());
                 outLine = new PrintWriter(mySocket.getOutputStream(), true);
@@ -882,12 +924,14 @@ public class JFlyNode {
                 String ipAddr = (String)params[0];
                 int port = (int)params[1];
                 mySocket = new Socket();
+                //ClientStyleThreads must open their own socket connections.
                 InetSocketAddress mySockAddr = new InetSocketAddress(ipAddr, port);
                 try
                 {
                     mySocket.connect(mySockAddr, 4000);
                 }
                 catch(IOException e) { }
+                //A ClientStyleThread can have the socket connection fail, and if so the application restarts.
                 if(!mySocket.isConnected())
                 {
                     if(threadQuesting) { outputLock.unlock(); }
@@ -920,6 +964,7 @@ public class JFlyNode {
             if(!threadQuesting) { super.run(); }
             else
             {
+                //A questing thread has a reduced number of possible responses, designed to only handle quester responses and transients.
                 while(inLine.hasNextLine())
                 {
                     inputLock.lock();
@@ -927,6 +972,7 @@ public class JFlyNode {
                     {
                         String received = inLine.nextLine();
                         String[] datParts = received.split(":~:", -1);
+                        //Replies with ACKs to messages.
                         if(!datParts[0].equals("JFLYMSGACK"))
                         {
                             OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
@@ -934,12 +980,14 @@ public class JFlyNode {
                         }
                         switch(datParts[0])               
                         {
+                            //Transients received are forwarded if allowed.
                             case "JFLYTRANSIENT":
                                 if(jNode.allowTransientForwarding(datParts[1]))
                                 {
                                     doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
                                 }
                                 break;
+                            //A quester that receives a disconnect courtesy disconnects instantly.
                             case "JFLYDISCONNECTCOURTESY":
                                 try
                                 {
@@ -947,6 +995,7 @@ public class JFlyNode {
                                 }
                                 catch(IOException e) {}
                                 break;
+                            //If the quester request has been accepted, the superclass run() is called and the OneLinkThread operates normally.
                             case "JFLYQUESTERRESPONSE":
                                 threadQuesting = false;
                                 inputLock.unlock();

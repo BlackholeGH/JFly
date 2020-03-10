@@ -20,6 +20,7 @@ public class TextUtility {
     public static String sanitizeText(String text)
     {
         if(text == null) { return null; }
+        //These character sequences are used to delimit text internally in JFly, and so are unsafe if included in inputted data.
         text = text.replace(":~:", "[JFLYMESSAGESEPARATOR]");
         text = text.replace("+-+", "[NCSUSERINFOSEPARATOR]");
         text = text.replace("|", "[BNMCHAINBLOCKSEPARATOR]");
@@ -34,6 +35,7 @@ public class TextUtility {
     public static String desanitizeText(String text)
     {
         if(text == null) { return null; }
+        //These placeholder text sequences are replaced with the proper char sequences for display purposes.
         text = text.replace("[JFLYMESSAGESEPARATOR]", ":~:");
         text = text.replace("[NCSUSERINFOSEPARATOR]", "+-+");
         text = text.replace("[BNMCHAINBLOCKSEPARATOR]", "|");

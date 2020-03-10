@@ -24,7 +24,7 @@ public class FocusVerifier implements FocusListener {
     }
     /**
      * focusGained() override to implement FocusListener.
-     * @param e 
+     * @param e The FocusEvent that has been triggered.
      */
     @Override
     public void focusGained(FocusEvent e) {

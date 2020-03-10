@@ -41,8 +41,11 @@ public class FlyLauncher extends JFrame implements ActionListener
         myNode = node;
         if(!(this instanceof FlyListenOpts))
         {
+            //The default close operation is do nothing, because...
             setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            //...on close, this window should ask the associated JFlyNode to manage application shutdown.
             addWindowListener(FlyLauncher.getExitListener(node));
+            //Display the launcher window.
             viewLauncher();
         }
     }
@@ -66,11 +69,14 @@ public class FlyLauncher extends JFrame implements ActionListener
 // 
 //--------------------------------------------------------------------------------------------------------------------
     FocusVerifier fL = new FocusVerifier();
+    //Various fonts are created.
     Font fnt = new Font("Ariel", Font.PLAIN, 18);
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
     Font fntMid = new Font("Ariel", Font.PLAIN, 14);
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
+    //The main application logo file location.
     static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo2.png";
+    //The simplified logo is more easily distinguished when used as a small window or program icon.
     static String fLogoSimple = System.getProperty("user.dir") + "\\Img\\JFlogoSimplified.png";
     /**
      * Gets the JFly logo icon in 50x50 size.
@@ -117,6 +123,7 @@ public class FlyLauncher extends JFrame implements ActionListener
     public static ArrayList<Image> getLogoIcons()
     {
         ArrayList<Image> out = new ArrayList();
+        //The sizes selected are standard icon sizes.
         out.add(getSimpleLogoIcon(64, 64));
         out.add(getSimpleLogoIcon(32, 32));
         out.add(getSimpleLogoIcon(16, 16));
@@ -127,18 +134,10 @@ public class FlyLauncher extends JFrame implements ActionListener
      */
     public void viewLauncher()
     {
+        //The window icons are set.
         setIconImages(getLogoIcons());
-        JMenuBar menuBar = new JMenuBar();
-        JMenu optionsMen = new JMenu();
-        //Creating options for the application.
-        optionsMen = new JMenu("Options");
-        optionsMen.setToolTipText("Application options dropdown");
-        optionsMen.setFont(fnt);
         
-        menuBar.add(optionsMen);
-        
-        //this.setJMenuBar(menuBar);
-        
+        //Creating the main launcher JPanel.
         JPanel launcherPanel = new JPanel(new BorderLayout());
         
         JPanel topLabel = new JPanel();
@@ -148,6 +147,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         System.out.println(System.getProperty("user.dir"));
         try
         {
+            //The application logo is displayed in the launcher.
             JLabel logoLabel = new JLabel(new ImageIcon(getLogoIcon(150, 150)));
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             topLabel.add(logoLabel);
@@ -155,6 +155,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         }
         catch(Exception e) {}
         
+        //Displaying explanatory dialogue labels.
         JLabel introDialog = new JLabel("Welcome to JFly. Please enter a node IP and access port to connect to a cluster.");
         introDialog.setFont(fnt);
         introDialog.setHorizontalAlignment(JLabel.CENTER);
@@ -162,6 +163,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         topLabel.add(Box.createVerticalStrut(10));
         topLabel.add(introDialog);
         
+        //Local IP and port are displayed for user convenience. These labels are html formatted.
         JLabel myLocalIP = new JLabel("<html>Your local IP is: <b>" + myNode.hostAddr() + "</b></html>");
         myLocalIP.setFont(fntMid);
         myLocalIP.setHorizontalAlignment(JLabel.CENTER);
@@ -177,9 +179,11 @@ public class FlyLauncher extends JFrame implements ActionListener
         topLabel.add(Box.createVerticalStrut(10));
         launcherPanel.add(topLabel, BorderLayout.NORTH);
         
+        //A new JPanel is created to display options widgets.
         JPanel launcherOptions = new JPanel();
         launcherOptions.setLayout(new BoxLayout(launcherOptions, BoxLayout.Y_AXIS));
         
+        //Create label and text field for entering the connection IP.
         JLabel ipLabel = new JLabel("IP Address");
         ipLabel.setFont(fntBold);
         ipLabel.setAlignmentX(CENTER_ALIGNMENT);
@@ -194,12 +198,14 @@ public class FlyLauncher extends JFrame implements ActionListener
         launcherOptions.add(ipField);
         launcherOptions.add(Box.createVerticalStrut(10));
         
+        //Create label and text field for entering the connection target port.
         JLabel portLabel = new JLabel("Target port");
         portLabel.setFont(fntBold);
         portLabel.setAlignmentX(CENTER_ALIGNMENT);
         launcherOptions.add(portLabel);
         launcherOptions.add(Box.createVerticalStrut(10));
         JTextField portField = new JTextField(20);
+        //The default JFly port is always 44665.
         portField.setText("44665");
         portField.setHorizontalAlignment(JTextField.CENTER);
         portField.setMaximumSize(new Dimension(100, 20));
@@ -209,6 +215,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         launcherOptions.add(portField);
         launcherOptions.add(Box.createVerticalStrut(10));
         
+        //Create the button to connect to a remote node.
         JButton connectButton = new JButton("Connect");
         connectButton.setToolTipText("Press to connect to a JFly node.");
         connectButton.setActionCommand("connect");
@@ -219,15 +226,18 @@ public class FlyLauncher extends JFrame implements ActionListener
         launcherOptions.add(connectButton);
         launcherPanel.add(launcherOptions, BorderLayout.CENTER);
         
+        //Create a new JPanel to hold options to launch as an initial JFly cluster node.
         JPanel startSoloPanel = new JPanel();
         startSoloPanel.setLayout(new BoxLayout(startSoloPanel, BoxLayout.Y_AXIS));
         
+        //Create explanatory dialogue label.
         JLabel cluster = new JLabel("Alternatively, you can launch the application without connecting to a node and become the first node of your own cluster.");
         cluster.setFont(fntSmall);
         cluster.setAlignmentX(CENTER_ALIGNMENT);
         startSoloPanel.add(cluster);
         startSoloPanel.add(Box.createVerticalStrut(10));
         
+        //Create button to launch as an initial node (i.e. start the application without initiating a connection to a remote node).
         JButton clusterButton = new JButton("Launch as an initial node");
         clusterButton.setToolTipText("Press to launch the application as an initial cluster node.");
         clusterButton.setActionCommand("cluster");
@@ -236,6 +246,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         startSoloPanel.add(clusterButton);
         startSoloPanel.add(Box.createVerticalStrut(10));
         
+        //Create button to open additional node lister options dialogue.
         JButton optionsButton = new JButton("Node listener options");
         optionsButton.setToolTipText("Press to view node listener options.");
         optionsButton.setActionCommand("options");
@@ -244,6 +255,7 @@ public class FlyLauncher extends JFrame implements ActionListener
         startSoloPanel.add(optionsButton);
         startSoloPanel.add(Box.createVerticalStrut(20));
         
+        //Create button to exit out of the application.
         JButton closeButton = new JButton("Exit application");
         closeButton.setToolTipText("Press close and exit JFly.");
         closeButton.setActionCommand("close");
@@ -256,15 +268,19 @@ public class FlyLauncher extends JFrame implements ActionListener
         
         add(launcherPanel);
         
+        //Set window size.
         setPreferredSize(new Dimension(1000, 700));
         pack();
         
+        //Set window title.
         setTitle("JFly Launcher - Java Facillitates Limitless Yelling");
         setLocationRelativeTo(null);
 
+        //Display launcher window.
         setVisible(true);  // Needed to ensure that the items can be seen.
     }
     Boolean sharedWarningFlag = false;
+    //The default JFly port is 44665.
     protected int targetPort = 44665;
     String targetIP = "";
     /**
@@ -276,10 +292,13 @@ public class FlyLauncher extends JFrame implements ActionListener
     {
         switch(ae.getActionCommand())
         {
+            //If options button pressed; display node listener options pane FlyListenOpts
             case "options":
                 new FlyListenOpts(myNode);
                 break;
+            //If connect hutton is pressed;
             case "connect":
+                //Ensure port and IP for target are valid.
                 if(targetPort == -1 || targetIP.equals(""))
                 {
                     if(!sharedWarningFlag)
@@ -291,6 +310,7 @@ public class FlyLauncher extends JFrame implements ActionListener
                 }
                 else
                 {
+                    //If target is valid, attempt to connect to remote node and start application by running sendConnectAndOpen() on the JFlyNode with the port/ip parameters.
                     setVisible(false);
                     Runnable connectTask = () -> {
                         Thread.currentThread().setName("Incoming connection listener");
@@ -301,24 +321,29 @@ public class FlyLauncher extends JFrame implements ActionListener
                         catch(IOException e) { System.out.println(e.toString()); }
                     };
                     new Thread(connectTask).start();
+                    //Then dispose of this GUI window.
                     myNode.wipeLauncher(this);
                     dispose();
                 }
                 break;
+            //If "launch as an initial node" is pressed;
             case "cluster":
                 setVisible(false);
                 Runnable openTask = () -> {
                     Thread.currentThread().setName("Incoming connection listener");
                     try
                     {
+                        //Open application and listen for incoming connections by running openReceiveAndWait() on the JFlyNode.
                         myNode.openReceiveAndWait();
                     }
                     catch(IOException e) { System.out.println(e.toString()); }
                 };
                 new Thread(openTask).start();
+                //Then dispose of this GUI window.
                 myNode.wipeLauncher(this);
                 dispose();
                 break;
+            //If the user attempts to set a new port, ensure that the format is valid.
             case "setport":
                 String portText = ((JTextField)ae.getSource()).getText();
                 if(portText.length() == 0) { break; }
@@ -328,6 +353,7 @@ public class FlyLauncher extends JFrame implements ActionListener
                     portNum = Integer.decode(portText);
                 }
                 catch(Exception e) {}
+                //If the port number is invalid, it is not accepted and a warning is displayed.
                 if(portNum > 65535 || portNum < 0)
                 {
                     if(!sharedWarningFlag)
@@ -337,11 +363,13 @@ public class FlyLauncher extends JFrame implements ActionListener
                         sharedWarningFlag = false;
                     }
                 }
+                //If the format is valid then the targetPort variable is newly set.
                 else
                 {
                     targetPort = portNum;
                 }
                 break;
+            //If the user attempts to set a new connection IP, ensure that the format is valid.
             case "setip":
                 String ipText = ((JTextField)ae.getSource()).getText();
                 if(ipText.length() == 0) { break; }
@@ -362,6 +390,7 @@ public class FlyLauncher extends JFrame implements ActionListener
                         break;
                     }
                 }
+                //If the IP number is invalid, it is not accepted and a warning is displayed.
                 if(validIP == false)
                 {
                     if(!sharedWarningFlag)
@@ -371,11 +400,13 @@ public class FlyLauncher extends JFrame implements ActionListener
                         sharedWarningFlag = false;
                     }
                 }
+                //If the format is valid then the targetIP variable is newly set.
                 else
                 {
                     targetIP = ipText;
                 }
                 break;
+            //If the close button is pressed; shutdownNode() is called on the JFlyNode to close the application.
             case "close":
                 myNode.shutdownNode();
                 break;
