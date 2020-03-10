@@ -20,20 +20,38 @@ import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 
 /**
- *
+ * The OneLinkThread class is the abstract class for connection thread handling.
+ * A given OneLinkThread manages data sent and received over a single socket connection and handles the various types of data that it receives, informing its associated JFlyNode when necessary.
  * @author dg7239p
  */
 public abstract class OneLinkThread implements Runnable
 {
+    /**
+     * A RemoteBlockIntegrationException is thrown when the JFlyNode's BlockchainNodeManager is unable to integrate a newly received block into the blockchain.
+     */
     public static class RemoteBlockIntegrationException extends Exception
     {
+        /**
+         * The FailureType enumeration details the type of integration failure that occurred.
+         * MissingRemoteHashOnRequest: A previous blockchain block was requested by its hash, but the remote node could not locate it.
+         * PostCascadeNonIntegration: After a retrieval cascade was performed to retrieve prior blockchain blocks, the original block could still not be integrated.
+         */
         enum FailureType { MissingRemoteHashOnRequest, PostCascadeNonIntegration }
         FailureType myFailure;
+        /**
+         * The RemoteBlockIntegrationException constructor.
+         * @param message The exception message.
+         * @param type The failure type for this integration exception.
+         */
         public RemoteBlockIntegrationException(String message, FailureType type)
         {
             super(message);
             myFailure = type;
         }
+        /**
+         * Get the failure type for this exception.
+         * @return The failure type.
+         */
         public FailureType getFailure()
         {
             return myFailure;
@@ -46,18 +64,29 @@ public abstract class OneLinkThread implements Runnable
     protected ReentrantLock outputLock = new ReentrantLock();
     protected ReentrantLock inputLock = new ReentrantLock();
     protected ArrayList<String> recentDispatchLog = new ArrayList<String>();
+    /**
+     * The OneLinkThread constructor.
+     * @param myNode The associated JFlyNode for this OneLinkThread. The OneLinkThread subclass instance should be an internal class for this instance.
+     */
     public OneLinkThread(JFlyNode myNode)
     {
         jNode = myNode;
         myNode.registerThread(this);
     }
     protected Socket mySocket;
+    /**
+     * Gets the socket connection address of this OneLinkThread.
+     * @return The socket connection address in the format IP:Port.
+     */
     public String getConnectionAddr()
     {
         return mySocket.getInetAddress().getHostAddress() + ":" + mySocket.getPort();
     }
     protected int missed = 0;
     protected long markedCourtesy = -1;
+    /**
+     * Check to see when the last ack responses were received over this connection and attempts to seek the remote node if it has not been responding.
+     */
     public void queryReplies()
     {
         if(markedCourtesy > 0 && JFlyNode.time() - markedCourtesy > 60)
@@ -97,6 +126,10 @@ public abstract class OneLinkThread implements Runnable
             }
         }
     }
+    /**
+     * Dispatches one new output job on this OneLinkThread's socket connection.
+     * @param myJob The job to be dispatched.
+     */
     public void oneDispatch(JFlyNode.OutputJobInfo myJob)
     {
         if(!mySocket.isConnected()) { return; }
@@ -115,6 +148,10 @@ public abstract class OneLinkThread implements Runnable
             if(!bypass) { outputLock.unlock(); }
         }
     }
+    /**
+     * Dispatches a queue of output jobs on this OneLinkThread's socket connection in sequence.
+     * @param myJobs The queue of jobs to be dispatched.
+     */
     public void queueDispatch(Queue<JFlyNode.OutputJobInfo> myJobs)
     {
         for(JFlyNode.OutputJobInfo tji : myJobs)
@@ -122,16 +159,28 @@ public abstract class OneLinkThread implements Runnable
             oneDispatch(tji);
         }
     }
+    /**
+     * Dispatches a new data block to all OneLinkThreads for this node, except for this one.
+     * @param block The data to be sent.
+     * @param header The data header.
+     */
     protected void doPanthreadDispatch(String block, String header)
     {
         JFlyNode.OutputJobInfo onForward = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.MULTIPLE_DISPATCH, block, header);
         jNode.sendJobToThreads(onForward, new OneLinkThread[] { this });
     }
+    /**
+     * Sets a flag to require that the OneLinkThread connection will require the user to select a username and author a USER_JOINED block.
+     */
     public void setDemandIntroduction()
     {
         introduction = false;
     }
     Boolean introduction = true;
+    /**
+     * Performs an appropriate handling operation for a received transient message.
+     * @param transientBody The data contents of the transient message to be handled.
+     */
     protected void handleTransient(String transientBody)
     {
         String[] brokenTransient = transientBody.split(Pattern.quote("+-+"));
@@ -148,10 +197,23 @@ public abstract class OneLinkThread implements Runnable
                 break;
         }
     }
+    /**
+     * Handles the next received data package from the remote node on the socket connection for this OneLinkThread.
+     * @param nextLine The next data received.
+     * @throws jfly.OneLinkThread.RemoteBlockIntegrationException
+     * @throws UnknownHostException 
+     */
     protected void performNextLineOperation(String nextLine) throws RemoteBlockIntegrationException, UnknownHostException
     {
         performNextLineOperation(nextLine, false);
     }
+    /**
+     * Handles the next received data package from the remote node on the socket connection for this OneLinkThread.
+     * @param nextLine The next data received.
+     * @param recursive True/false flag for whether this call is a recursive one within another line handling operation.
+     * @throws jfly.OneLinkThread.RemoteBlockIntegrationException
+     * @throws UnknownHostException 
+     */
     protected void performNextLineOperation(String nextLine, Boolean recursive) throws RemoteBlockIntegrationException, UnknownHostException
     {
         if(!recursive)
@@ -245,10 +307,25 @@ public abstract class OneLinkThread implements Runnable
         jNode.updateChatWindow();
     }
     LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
+    /**
+     * Interfaces with this OneLinkThread's associated JFlyNode's BlockChainManager in order to integrate a newly received blockchain block into the local blockchain.
+     * @param nextLine The full received data.
+     * @param datParts The block data parcel split into segments.
+     * @throws jfly.OneLinkThread.RemoteBlockIntegrationException
+     * @throws UnknownHostException 
+     */
     protected void handleNewBlock(String nextLine, String[] datParts) throws RemoteBlockIntegrationException, UnknownHostException
     {
         handleNewBlock(nextLine, datParts, false);
     }
+    /**
+     * Interfaces with this OneLinkThread's associated JFlyNode's BlockChainManager in order to integrate a newly received blockchain block into the local blockchain.
+     * @param nextLine The full received data.
+     * @param datParts The block data parcel split into segments.
+     * @param recursive True/false flag for whether this call is a recursive one within another line handling operation.
+     * @throws jfly.OneLinkThread.RemoteBlockIntegrationException
+     * @throws UnknownHostException 
+     */
     protected void handleNewBlock(String nextLine, String[] datParts, Boolean recursive) throws RemoteBlockIntegrationException, UnknownHostException
     {
         if(!recursive) { receivedDuringBlocking = new LinkedList<String>(); }
@@ -317,6 +394,10 @@ public abstract class OneLinkThread implements Runnable
         }
     }
     Boolean nameSet = false;
+    /**
+     * The override for the run() method in Runnable. This contains the loop that receives incoming socket data.
+     */
+    @Override
     public void run()
     {
         if(!nameSet)
@@ -351,6 +432,11 @@ public abstract class OneLinkThread implements Runnable
             if(stopping) { break; }
         }
     }
+    /**
+     * Stops this OneLinkThread's run() operation and unregisters it from its associated JFlyNode().
+     * @param skipBlockUnregister True/false value for whether the lock blocking should be skipped while unregistering the OneLinkThread.
+     * @throws IOException 
+     */
     public void stop(Boolean skipBlockUnregister) throws IOException
     {
         stopping = true;

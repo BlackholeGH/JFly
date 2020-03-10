@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 
 /**
- *
+ * The BlockchainNodeManager class is responsible for maintaining, writing to, and reading from the local JFly blockchain.
  * @author dg7239p
  */
 public class BlockchainNodeManager {
@@ -24,11 +24,20 @@ public class BlockchainNodeManager {
     private Stack<String> hashChain = new Stack<String>();
     private JFlyNode myNode = null;
     private ArrayList<String> validRegistrars = new ArrayList();
+    /**
+     * Returns the hash of the last block that was written.
+     * @return 
+     */
     public String lastHash()
     {
         if(hashChain.size() > 0) { return hashChain.peek(); }
         else { return ""; }
     }
+    /**
+     * Checks whether or not the hash of a given registrar block is included in the internal list of valid registrars to read data from.
+     * @param hash The hash of the registrar block.
+     * @return True/false value for whether the registrar block is recorded as valid.
+     */
     private Boolean validRegistrarHash(String hash)
     {
         for(String h : validRegistrars)
@@ -37,6 +46,11 @@ public class BlockchainNodeManager {
         }
         return false;
     }
+    /**
+     * Reads from the blockchain to update the contents of a NetworkConfigurationState.
+     * @param cur The NetworkConfigurationState to update.
+     * @param depth The depth to which the blockchain should be read to update the NetworkConfigurationState. Set to -1 to read the entire blockchain.
+     */
     public void calculateConfigs(NetworkConfigurationState cur, int depth)
     {
         ArrayList<NetworkConfigurationState.UserInfo> newUsers = cur.getUsers();
@@ -99,6 +113,11 @@ public class BlockchainNodeManager {
         System.out.println("Network configuration database updated (Depth of " + depth + "): ");
         System.out.println(cur);
     }
+    /**
+     * Reads from the blockchain to get the last x messages that should be displayed.
+     * @param depth The depth to which the blockchain should be read to retrieve messages.
+     * @return A String array of messages to be displayed.
+     */
     public String[] getLast(int depth)
     {
         ArrayList<String> msgs = new ArrayList<String>();
@@ -142,14 +161,27 @@ public class BlockchainNodeManager {
         }
         return out;
     }
+    /**
+     * Gets the associated JFlyNode for this BlockchainNodeManager.
+     * @return The associated JFlyNode.
+     */
     public JFlyNode getJNode()
     {
         return myNode;
     }
+    /**
+     * The BlockchainNodeManager constructor.
+     * @param associatedNode The associated JFlyNode for this BlockchainNodeManager.
+     */
     public BlockchainNodeManager(JFlyNode associatedNode)
     {
         myNode = associatedNode;
     }
+    /**
+     * Attempts to author a new block on this blockchain.
+     * @param newContentType The content type of the new block to be authored.
+     * @param newContentData The data of the new block to be authored.
+     */
     public void authorBlock(SharedStateBlock.ContentType newContentType, String newContentData)
     {
         System.out.println("Attempting to author a new block: " + newContentType.toString() + " : " + newContentData);
@@ -169,29 +201,45 @@ public class BlockchainNodeManager {
         myNode.updateChatWindow();
         //calculateConfigs(myNode.getNCS(), 1);
     }
+    /**
+     * Returns a random SharedStateBlock hash value.
+     * @return The random hash value.
+     */
     public String tryOneHash()
     {
         Random rnd = new Random();
         return (new SharedStateBlock(this, rnd.nextDouble() + "")).getHash();
     }
+    /**
+     * Retrieves the contents of a blockchain block, indexed by its hash.
+     * @param hash The hash of the block to retrieve.
+     * @return 
+     */
     public String getByHash(String hash)
     {
         if(sharedStateBlocks.containsKey(hash)) { return ((SharedStateBlock)sharedStateBlocks.get(hash)).toString(); }
         else { return null; }
     }
-    /*
-    0: Added as expected
-    1: Was added but BlockChain was empty?
-    2: Failed to add, no matching PrevHash in chain, request more blocks
-    3: Couldn't construct new block. Verification failed?
-    4: Block already present or hash collision
-    */
     private int lastDepth = 0;
     private int registrarTolerance = 0;
+    /**
+     * Increase the number of registrar blocks that the BlockchainNodeManager can accept to be valid to read from.
+     * @param incr The degree to which the registrar tolerance number should be increased.
+     */
     public void addRegistrarTolerance(int incr)
     {
         registrarTolerance += incr;
     }
+    /**
+     * Attempts to add an existing blockchain data block to the local blockchain.
+     * @param blockData The data of the extant block to add.
+     * @return The result of the attempted adding operation:
+     * 0: Added as expected
+     * 1: Was added but BlockChain was empty?
+     * 2: Failed to add, no matching PrevHash in chain, request more blocks
+     * 3: Couldn't construct new block. Verification failed?
+     * 4: Block already present or hash collision
+     */
     public Object[] addExtantBlockToChain(String blockData)
     {
         SharedStateBlock extBlock = new SharedStateBlock(this);
@@ -326,8 +374,14 @@ public class BlockchainNodeManager {
             return new Object[] { 3, extBlock.getHash() };
         }
     }
+    /**
+     * The SharedStateBlock class is a class that represents the contents of a single blockchain block.
+     */
     public static class SharedStateBlock
     {
+        /**
+         * A StateBlockVerificationException is thrown if a newly reconstructed SharedStateBlock from received String data does not properly verify its hash.
+         */
         public static class StateBlockVerificationException extends Exception
         {
             public StateBlockVerificationException(String message)
@@ -335,9 +389,23 @@ public class BlockchainNodeManager {
                 super(message);
             }
         }
+        /**
+         * The ContentType enumeration details the type of content that this SharedStateBlock contains.
+         * MESSAGE: A chat message.
+         * USER_JOINED: A user joining the JFly cluster.
+         * USER_LEFT: A user leaving the JFly cluster.
+         * SYSTEM_UTIL: A system message.
+         * GENESIS: The initial source block for a JFly blockchain.
+         * GROUP_REGISTRAR: Contains current user data for everyone in the cluster, authored when a new user joins.
+         */
         public static enum ContentType
         {
             MESSAGE, USER_JOINED, USER_LEFT, SYSTEM_UTIL, GENESIS, GROUP_REGISTRAR;
+            /**
+             * Returns a ContentType value from its equivalent String representation.
+             * @param cTypeStr The String representation of a ContentType value.
+             * @return The equivalent ContentType value.
+             */
             public static ContentType fromString(String cTypeStr)
             {
                 switch(cTypeStr.toUpperCase())
@@ -364,15 +432,31 @@ public class BlockchainNodeManager {
         String originatingUserID = "";
         long updateTime = 0;
         BlockchainNodeManager myManager;
+        /**
+         * The SharedStateBlock constructor.
+         * @param bnManager The owning BlockchainNodeManager for this SharedStateBlock instance.
+         */
         public SharedStateBlock(BlockchainNodeManager bnManager)
         {
             myManager = bnManager;
         }
+        /**
+         * The SharedStateBlock constructor.
+         * @param bnManager The owning BlockchainNodeManager for this SharedStateBlock instance.
+         * @param prevHash The hash of the previous block in the chain.
+         */
         public SharedStateBlock(BlockchainNodeManager bnManager, String prevHash)
         {
             myManager = bnManager;
             localPrevBlockHash = prevHash;
         }
+        /**
+         * The SharedStateBlock constructor.
+         * @param bnManager The owning BlockchainNodeManager for this SharedStateBlock instance.
+         * @param newContentType The COntentType of the content of this SharedStateBlock.
+         * @param newContentData The data contained within this SharedStateBlock.
+         * @param prevHash The hash of the previous block in the chain.
+         */
         public SharedStateBlock(BlockchainNodeManager bnManager, ContentType newContentType, String newContentData, String prevHash)
         {
             myManager = bnManager;
@@ -390,6 +474,11 @@ public class BlockchainNodeManager {
             }
             updateTime = createDate.getTime();          
         }
+        /**
+         * The initial hashing algorithm for JFly blockchain blocks.
+         * @param temp The initial data to hash.
+         * @return The hashed data.
+         */
         public static String getRawHash(String temp)
         {          
             int blockSize = 0;
@@ -424,38 +513,75 @@ public class BlockchainNodeManager {
             collate = collate.substring(0, 32);
             return collate;
         }
+        /**
+         * Sets the last block's hash value for this SharedStateBlock.
+         * @param prevHash The hash of the previous block to be set.
+         */
         public void setLastBlockHash(String prevHash)
         {
             localPrevBlockHash = prevHash;
         }
+        /**
+         * Gets the author time for the blockchain block this SharedStateBlock represents.
+         * @return The author time as a long, as per the Unix epoch time.
+         */
         public long getCreationTime()
         {
             return updateTime;
         }
+        /**
+         * Gets the content type for the blockchain block this SharedStateBlock represents.
+         * @return The content type.
+         */
         public ContentType getContentType()
         {
             return contentType;
         }
+        /**
+         * Gets the data for the blockchain block this SharedStateBlock represents.
+         * @return The SharedStateBlock's data.
+         */
         public String getContentData()
         {
             return contentData;
         }
+        /**
+         * Gets the hash ID of the user who authored the blockchain block this SharedStateBlock represents.
+         * @return The authoring user's hash ID.
+         */
         public String getOUID()
         {
             return originatingUserID;
         }
+        /**
+         * Gets the hash of the block preceding on the blockchain the blockchain block this SharedStateBlock represents.
+         * @return The hash of the preceding block.
+         */
         public String getLastBlockHash()
         {
             return localPrevBlockHash;
         }
+        /**
+         * Generates the true hash of the blockchain block this SharedStateBlock represents.
+         * @return The true hash of this block.
+         */
         public String getHash()
         {
             return getRawHash(getRawHash(getRawHash(myDat())));
         }
+        /**
+         * Generates a hash of any String data.
+         * @param data The data to be hashed.
+         * @return The hash of the data.
+         */
         public static String getHash(String data)
         {
             return getRawHash(getRawHash(getRawHash(data)));
         }
+        /**
+         * Creates a string representation of the data contained within this SharedStateBlock.
+         * @return A String representing the data contained within this SharedStateBlock. 
+         */
         private String myDat()
         {
             return localPrevBlockHash +
@@ -464,11 +590,20 @@ public class BlockchainNodeManager {
                     "|" + contentType.toString() +
                     "|" + contentData;
         }
+        /**
+         * toString() override that converts this SharedStateBlock to a string representation in the form Data|Hash.
+         * @return The String representation of this SharedStateBlock.
+         */
         @Override
         public String toString()
         {
             return myDat() + "|" + getHash();
         }
+        /**
+         * Initializes this SharedStateBlock to data received in String format.
+         * @param initData The data to be used to initialize this SharedStateBlock.
+         * @return The hash value included in the initializing data, for verification purposes.
+         */
         public String selfInitialize(String initData)
         {
             String[] dataSegs = initData.split("\\|", -1);
@@ -479,10 +614,24 @@ public class BlockchainNodeManager {
             contentData = dataSegs[4];
             return dataSegs[5];
         }
+        /**
+         * Creates a new SharedStateBlock and initializes it from given String initialization data, verifying it against its hash.
+         * The new block's owning BlockchainNodeManager will be the same as the SharedStateBlock that this was called upon.
+         * @param initData The initialization data.
+         * @return The newly created SharedStateBlock.
+         * @throws jfly.BlockchainNodeManager.SharedStateBlock.StateBlockVerificationException 
+         */
         public SharedStateBlock getOneBlock(String initData) throws StateBlockVerificationException
         {
             return getOneBlock(myManager, initData);
         }
+        /**
+         * Creates a new SharedStateBlock and initializes it from given String initialization data, verifying it against its hash.
+         * @param rqManager The BlockchainNodeManager that should own the new SharedStateBlock.
+         * @param initData The initialization data.
+         * @return The newly created SharedStateBlock.
+         * @throws jfly.BlockchainNodeManager.SharedStateBlock.StateBlockVerificationException 
+         */
         public static SharedStateBlock getOneBlock(BlockchainNodeManager rqManager, String initData) throws StateBlockVerificationException
         {
             SharedStateBlock oneBlock = new SharedStateBlock(rqManager);

@@ -635,7 +635,8 @@ public class JFlyNode {
         {
             if(seekers.size() > 0)
             {
-                for(Object hashIDo : seekers.keySet())
+                Hashtable seekersCl = (Hashtable)seekers.clone();
+                for(Object hashIDo : seekersCl.keySet())
                 {
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
