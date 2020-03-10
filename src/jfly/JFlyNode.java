@@ -633,7 +633,7 @@ public class JFlyNode {
                 {
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
-                    long seekTime = (long)seekers.get(hashID);
+                    long seekTime = (long)seekers.get(hashIDo);
                     if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
                     {
                         seekers.put("CONTACT|" + hashID, time());
