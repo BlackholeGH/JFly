@@ -614,7 +614,7 @@ public class JFlyNode {
         }
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
-            String findUsrID = (userIDorResponseTransient.split(":~:", -1)[1]).split("+-+", -1)[1];
+            String findUsrID = (userIDorResponseTransient.split(Pattern.quote(":~:"), -1)[1]).split(Pattern.quote("+-+"), -1)[1];
             if(seekers.containsKey(findUsrID))
             {
                 seekers.put(findUsrID, "RESPONSE_RECEIVED|RESPONSE_RECEIVED");
