@@ -199,9 +199,9 @@ public abstract class OneLinkThread implements Runnable
                 finally { outputLock.unlock(); }
                 break;
             case "JFLYTRANSIENT":
+                handleTransient(datParts[1]);
                 if(jNode.allowTransientForwarding(datParts[1]))
                 {
-                    handleTransient(datParts[1]);
                     doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
                 }
                 break;
