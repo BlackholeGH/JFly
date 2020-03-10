@@ -604,9 +604,9 @@ public class JFlyNode {
         else if(userIDorResponseTransient.startsWith("USERHASHID"))
         {
             String userHashID = userIDorResponseTransient.replaceAll("USERHASHID|", "");
-            if(!seekers.containsKey(usr) || (seekers.containsKey(usr) && seekers.get(usr).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
+            if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
             {
-                seekers.put("SEEK|" + usr, time());
+                seekers.put("SEEK|" + userHashID, time());
                 String transientBody = "seeking+-+" + getUserID();
                 OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                 sendJobToThreads(seekingTransient, null);
@@ -621,7 +621,7 @@ public class JFlyNode {
                 long seekTime = (long)seekers.get(hashID);
                 if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
                 {
-                    seekers.put("CONTACT|" + usr, time());
+                    seekers.put("CONTACT|" + hashID, time());
                     String transientBody = "forcecontact+-+" + getUserID();
                     OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                     sendJobToThreads(seekingTransient, null);
