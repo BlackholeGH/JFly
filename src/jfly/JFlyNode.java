@@ -627,22 +627,25 @@ public class JFlyNode {
         }
         else
         {
-            for(Object hashIDo : seekers.keySet())
+            if(seekers.size() > 0)
             {
-                String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
-                String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
-                long seekTime = (long)seekers.get(hashID);
-                if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
+                for(Object hashIDo : seekers.keySet())
                 {
-                    seekers.put("CONTACT|" + hashID, time());
-                    String transientBody = "forcecontact+-+" + getUserID();
-                    OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
-                    sendJobToThreads(seekingTransient, null);
-                }
-                else if(time() - seekTime > contactTolerance)
-                {
-                    seekers.remove(hashID);
-                    issueTimeout(hashID);
+                    String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
+                    String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
+                    long seekTime = (long)seekers.get(hashID);
+                    if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
+                    {
+                        seekers.put("CONTACT|" + hashID, time());
+                        String transientBody = "forcecontact+-+" + getUserID();
+                        OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
+                        sendJobToThreads(seekingTransient, null);
+                    }
+                    else if(time() - seekTime > contactTolerance)
+                    {
+                        seekers.remove(hashID);
+                        issueTimeout(hashID);
+                    }
                 }
             }
         }
