@@ -622,7 +622,7 @@ public class JFlyNode {
         }
         else if(userIDorResponseTransient.startsWith("USERHASHID"))
         {
-            String userHashID = userIDorResponseTransient.replaceAll("USERHASHID|", "");
+            String userHashID = userIDorResponseTransient.replaceAll(Pattern.quote("USERHASHID|"), "");
             if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
             {
                 seekers.put("SEEK|" + userHashID, time());
