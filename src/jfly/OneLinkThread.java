@@ -242,7 +242,7 @@ public abstract class OneLinkThread implements Runnable
             default:
                 break;
         }
-        jNode.getGUI().remoteSetTextBox(jNode.getLastMessages(30));
+        jNode.updateChatWindow();
     }
     LinkedList<String> receivedDuringBlocking = new LinkedList<String>();
     protected void handleNewBlock(String nextLine, String[] datParts) throws RemoteBlockIntegrationException, UnknownHostException

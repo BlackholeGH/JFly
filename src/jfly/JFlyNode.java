@@ -397,6 +397,10 @@ public class JFlyNode {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(getUserID()));
         closeAll();
     }
+    public synchronized void updateChatWindow()
+    {
+        if(myGUI != null) { myGUI.remoteSetTextBox(getLastMessages(50)); }
+    }
     /**
      * Retrieve the last x chat messages from the Blockchain.
      * @param num The number of chat messages to retrieve.
@@ -622,7 +626,7 @@ public class JFlyNode {
             if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
             {
                 seekers.put("SEEK|" + userHashID, time());
-                String transientBody = "seeking+-+" + getUserID();
+                String transientBody = "seeking+-+" + userHashID;
                 OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                 sendJobToThreads(seekingTransient, null);
             }
