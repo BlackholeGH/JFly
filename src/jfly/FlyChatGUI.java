@@ -14,29 +14,19 @@ public class FlyChatGUI extends JFrame {
 
 //**************************************************************************************
 
-    JScrollPane sp;
-    JScrollPane sp2;
-    JScrollPane sp3;
-    JScrollPane sp4;
-    JScrollPane sp5;
-    JScrollPane scrollPane1;
+    JScrollPane sp; 
+    JScrollPane scrollPane1;  
     JTable table;
-    JTable table1;
-    JTable table2;
-    JTable table3;
     JTableHeader header;
     JPanel north;
-    JPanel inNorth;
+    JPanel inNorth;   
     TitledBorder borderTitle;
-    TitledBorder borderTitle2;
-
+    TitledBorder borderTitle2;  
     JButton sendButton;
     JButton exiButton;
     JFrame mainFrame;
     JPanel East;
-    JLabel Title;
-    JButton clear;
-    JTextField textField1;
+    JLabel Title;      
     JTextField msgBox;
     JTextArea txtArea1; 
     JMenuBar menuBar;
@@ -44,40 +34,18 @@ public class FlyChatGUI extends JFrame {
     JMenuItem menuItem;
     JMenuItem menuItem2;
     JMenuItem menuItem3;
-    DecimalFormat decimalFormat;
+   
     Color white = Color.WHITE;
     Color black = Color.BLACK;
     
-//**************************************************************************************
-
-//**************************************************************************************
-    String[] optNames = {"Option1", "Option2", "Option3"};
-    String[] rootNames = {"Newton-Raphson", "Secant", "Bisection", "Research"};
-//**************************************************************************************
-    ArrayList bob;
-    //Jtable Stuff
-//**************************************************************************************
     String data[][] = {};
-
     String[] columnNames = {};
-//**************************************************************************************
-
-    /*
-     String crse = "";
-     String crsework = "";
-     String courseReq = "";
-     String allCourse = "";
-     /*/
+    
     Font fnt = new Font("Century Gothic", Font.PLAIN, 20);
     Font fnt2 = new Font("Century Gothic", Font.PLAIN, 15);
     Font fnt3 = new Font("Century Gothic", Font.PLAIN, 40);
     
 
-    ArrayList<Double> xvalueArr = new ArrayList();
-    ArrayList<Double> yvalueArr = new ArrayList();
-
-    //GUI prg =
-    // Using MVC
     JFlyNode myNode = null;
     public FlyChatGUI(JFlyNode jNode) { //making the constructor
         addWindowListener(FlyLauncher.getExitListener(jNode));
@@ -86,7 +54,7 @@ public class FlyChatGUI extends JFrame {
         view();
     }
     public void setdarkcolor() {
-        setBackground(black);     
+        setBackground(black);
         Title.setForeground(Color.black);
         inNorth.setBackground(Color.pink);
         msgBox.setBackground(black);
@@ -95,30 +63,30 @@ public class FlyChatGUI extends JFrame {
         scrollPane1.getVerticalScrollBar().setBackground(black);
         txtArea1.setBackground(black);
         txtArea1.setForeground(Color.pink);
-      
+
         table.setBackground(black);
         table.setForeground(Color.pink);
         header.setForeground(Color.PINK);
-               
+
         header.setBackground(Color.black);
         borderTitle2.setTitleColor(Color.pink);
-   //     header.setBackground(black);
+        //     header.setBackground(black);
         mainFrame.repaint();
         mainFrame.revalidate();
 
     }
-    
-        public void setlightcolor() {
+
+    public void setlightcolor() {
         setBackground(white);
-        
+
         Title.setBackground(black);
         Title.setForeground(Color.pink);
         msgBox.setBackground(Color.black);
-       
+
         sp.setForeground(white);
         sp.getViewport().setBackground(Color.pink);
-       scrollPane1.getVerticalScrollBar().setBackground(white);
-        txtArea1.setBackground(Color.pink); 
+        scrollPane1.getVerticalScrollBar().setBackground(white);
+        txtArea1.setBackground(Color.pink);
         txtArea1.setForeground(black);
         table.setBackground(Color.pink);
         table.setForeground(black);
@@ -133,8 +101,7 @@ public class FlyChatGUI extends JFrame {
 
     }
         public void setcolour(Color FG, Color BG){
-            
-            
+                      
         }
 
     public void setlightcolor(String light, String dark) {
@@ -143,13 +110,13 @@ public class FlyChatGUI extends JFrame {
     }
 
     ListenForButton lforButton = new ListenForButton();
-    private void model() { //creating an object for action listener
+    private void model() { 
 
-        //Configuring the Function Jcombobox defined above as class variable
-//****************************************************************************************************************
+       
 
-//****************************************************************************************************************
 
+//Setting up the JMenu Options
+//-------------------------------------------------------------------------------------------
         menuBar = new JMenuBar();
         JMenu menu  = new JMenu("Options");
         menu.setFont(fnt);
@@ -167,8 +134,8 @@ public class FlyChatGUI extends JFrame {
         
         
 
-     
-//****************************************************************************************************************
+//Setting up the button to send messages, as well as exiting the program    
+//-------------------------------------------------------------------------------------------
         sendButton = new JButton();
         sendButton.setFont(fnt);
         sendButton.setToolTipText("Sends your message");
@@ -185,7 +152,7 @@ public class FlyChatGUI extends JFrame {
 
     }
 
-    public void closeMainframe()
+    public void closeMainframe() //method to close the mainframe
     {
         mainFrame.dispose();
     }
@@ -194,8 +161,8 @@ public class FlyChatGUI extends JFrame {
         
         
 
-        //using Borderfactory to create a titled border, at setting its position
-//===================================================================================================================
+//using Borderfactory to create a titled border, defining it's appropriate title 
+//-------------------------------------------------------------------------------------------
        
         borderTitle2 = BorderFactory.createTitledBorder("User List");
         borderTitle2.setTitleColor(Color.pink);
@@ -204,15 +171,13 @@ public class FlyChatGUI extends JFrame {
         borderTitle.setTitleColor(Color.pink);
         borderTitle.setTitleJustification(borderTitle.CENTER);
 
-//===================================================================================================================
+//-------------------------------------------------------------------------------------------
 
-        //tk can be used to get screen size, GUI stuff
-        Toolkit tk = Toolkit.getDefaultToolkit();
-
-        //this makes the mainframe for all the panels to be placed within
-        //Configuring up the frame
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-//===================================================================================================================
+//-------------------------------------------------------------------------------------------
+
+//configuring the mainframe
+//-------------------------------------------------------------------------------------------
         mainFrame = new JFrame("JFly - Java Facillitates Limitless Yelling");
         mainFrame.setIconImages(FlyLauncher.getLogoIcons());
         mainFrame.setSize(1050, 700);
@@ -221,13 +186,13 @@ public class FlyChatGUI extends JFrame {
         mainFrame.setBackground(Color.PINK);
         mainFrame.setVisible(true);
         mainFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        mainFrame.addWindowListener(FlyLauncher.getExitListener(myNode));
+        mainFrame.addWindowListener(FlyLauncher.getExitListener(myNode)); //adding a listener
         mainFrame.setJMenuBar(menuBar);
         setBackground(Color.PINK);
-//===================================================================================================================
+//-------------------------------------------------------------------------------------------
 
-        //setting up a North Jpanel for the title to go into, then adding it to mainframe
-//===================================================================================================================
+//setting up a North and inNorth Jpanel for the title, logo and buttons to go into
+//-------------------------------------------------------------------------------------------
 
         north = new JPanel(new BorderLayout());
         inNorth = new JPanel(new FlowLayout());
@@ -242,10 +207,10 @@ public class FlyChatGUI extends JFrame {
         inNorth.add(Title);
         north.add(inNorth, BorderLayout.CENTER);
         mainFrame.add(north, BorderLayout.NORTH);
-//===================================================================================================================
+//-------------------------------------------------------------------------------------------
 
-        //setting up a south Jpanel for stuff to go into, then adding it to mainframe
-//===================================================================================================================
+//setting up a south Jpanel for stuff to go into, then adding it to mainframe
+//-------------------------------------------------------------------------------------------
         JPanel South = new JPanel(new BorderLayout()); //uses a flow layout
         South.setBackground(Color.PINK);
         msgBox = new JTextField("");
@@ -258,11 +223,11 @@ public class FlyChatGUI extends JFrame {
         mainFrame.add(South, BorderLayout.SOUTH);
 
         
-        //JTable attributes
+
+//Configuring the scrollpane for the user list table ot go into
 //--------------------------------------------------------------------------------------------------------------------
        
         sp = new JScrollPane(); //adding table to the scrollpane
-        //table.setPreferredScrollableViewportSize(table.getPreferredSize());
         sp.setPreferredSize(new Dimension(260, 450));
         sp.setForeground(Color.black);
         sp.getViewport().setBackground(Color.black);
@@ -270,8 +235,9 @@ public class FlyChatGUI extends JFrame {
         sp.setBackground(Color.BLACK);
         updateTable(data);
     
-
-        East = new JPanel(new BorderLayout());//(new BorderLayout()); //uses a flow layout
+//Configuring the east panel for the table scroll pane to go into
+//--------------------------------------------------------------------------------------------------------------------
+        East = new JPanel(new BorderLayout());
         East.setBackground(Color.PINK);
         East.add(sp);
         mainFrame.add(East, BorderLayout.EAST);
@@ -279,33 +245,29 @@ public class FlyChatGUI extends JFrame {
 
 
 
-        //set up of a textArea1 (x+f(x) with scroll pane
+//setting up the textarea for messages to be displayed
 //--------------------------------------------------------------------------------------------------------------------
         txtArea1 = new JTextArea(10, 20);
-        txtArea1.setLineWrap(true); //skips to second line
+        txtArea1.setLineWrap(true); 
         txtArea1.setWrapStyleWord(true);
         scrollPane1 = new JScrollPane(txtArea1, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);//adding txt area to scroll pane
         scrollPane1.getVerticalScrollBar().setBackground(Color.BLACK);
         txtArea1.setFont(fnt2);
-        txtArea1.setForeground(Color.pink); //Text colour
+        txtArea1.setForeground(Color.pink);
         txtArea1.setBackground(Color.BLACK);
         txtArea1.setEditable(false);
-        scrollPane1.setBorder(borderTitle); //adds a border to the scroll pane    
+        scrollPane1.setBorder(borderTitle);    
         scrollPane1.setBackground(Color.black);
 //--------------------------------------------------------------------------------------------------------------------
 
 
-        //Setting x,y,width,height positions for GUI features
+// setting up the dimensions for a button and the SP   
 //--------------------------------------------------------------------------------------------------------------------
         sendButton.setBounds(410, 150, 120, 50);
         scrollPane1.setBounds(0, 0, 785, 532);
        
     
-     
-
-//--------------------------------------------------------------------------------------------------------------------
-        //settin up a Jpanel mainPanel as the main panel for things to go into
-        //Adding componants to mainPanel
+ //settin up a Jpanel mainPanel as the main panel for things to go into, and adding componants to mainPanel  
 //--------------------------------------------------------------------------------------------------------------------
         mainPanel = new JPanel();
         mainPanel.setLayout(null);
@@ -319,13 +281,15 @@ public class FlyChatGUI extends JFrame {
 
         
     }
-    //Method to add my values to a Jtable via arraylist
-    //--------------------------------------------------------------------------------------------------------------------  
+//Method to add my headers to our Jtable
+//--------------------------------------------------------------------------------------------------------------------  
     public void updateTable(Object data[][])
     {
         updateTable(data, new String[] {"Users", "User IDs"});
     }
-    
+  
+//Method to add my values to our Jtable, whilst customising the layout
+//--------------------------------------------------------------------------------------------------------------------  
     public void updateTable(Object data[][], String[] Columns)
     {
         DefaultTableModel model = new DefaultTableModel(data, Columns);
@@ -340,6 +304,8 @@ public class FlyChatGUI extends JFrame {
         sp.setViewportView(table);      
     }
 
+//Method to add my values to our textarea.
+//--------------------------------------------------------------------------------------------------------------------  
     public void remoteSetTextBox(String[] text)
     {
         String s = "";
@@ -353,39 +319,26 @@ public class FlyChatGUI extends JFrame {
     }
     
 
-    //--------------------------------------------------------------------------------------------------------------------   
-
-    //Listeners 
-    public class ListenForButton implements ActionListener, KeyListener {
-
-        Font fnt = new Font("Georgia", Font.PLAIN, 20);
+//Listener class
+//--------------------------------------------------------------------------------------------------------------------   
+    public class ListenForButton implements ActionListener, KeyListener { 
 
         @Override
         public void actionPerformed(ActionEvent e) {
 
 
 
-            //button to clear jtext1
-            if(e.getSource() == menuItem){
-                JOptionPane.showMessageDialog(rootPane, "clicked!");
-                setlightcolor();
-                
+//actions to set light and dark mode in the menu bar options
+//--------------------------------------------------------------------------------------------------------------------
+            if(e.getSource() == menuItem){             
+                setlightcolor();               
             }
             if (e.getSource() == menuItem2) {
-                JOptionPane.showMessageDialog(rootPane, "clickeddxrfxgbfgb!");
                 setdarkcolor();
 
-            }
-            //--------------------------------------------------------------------------------------------------------------------
-            if (e.getSource() == clear && txtArea1.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(rootPane, "Already Clear");
-            } else if (e.getSource() == clear) {
-                txtArea1.setText("");
-                JOptionPane.showMessageDialog(rootPane, "Cleared");
-            }
-//--------------------------------------------------------------------------------------------------------------------
-
-            //button for graph
+            }        
+            
+//button to exit the program 
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == exiButton) {
                 try {
@@ -395,9 +348,8 @@ public class FlyChatGUI extends JFrame {
                     JOptionPane.showMessageDialog(rootPane, "Error");
                 }
             }
-
-//--------------------------------------------------------------------------------------------------------------------
-            //Events for calculating the functions
+            
+//Events to send the message when clicking the send putton, or clicking enter whilst focused on the msgBox
 //--------------------------------------------------------------------------------------------------------------------
             if (e.getSource() == sendButton || e.getSource() == msgBox) {
                 String msg = msgBox.getText().toString();
@@ -407,9 +359,8 @@ public class FlyChatGUI extends JFrame {
                     msgBox.setText("");
                 }
             }
-//--------------------------------------------------------------------------------------------------------------------
 
-        }//PB actioned performed
+        }//PB actioned performed                
 
         @Override
         public void keyTyped(KeyEvent e) {
@@ -418,21 +369,13 @@ public class FlyChatGUI extends JFrame {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyChar() == 38 && msgBox.hasFocus()){
-                JOptionPane.showMessageDialog(rootPane, "up arrow");
-               
-                
-            }
-            
-                
-            
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
-        
     }//the listener class
 }//Public Class
 
