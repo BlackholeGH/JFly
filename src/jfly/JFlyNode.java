@@ -22,7 +22,7 @@ import java.util.Hashtable;
 import java.util.regex.Pattern;
 /**
  *
- * @author Blackhole
+ * @author Blackhole (dg7239p)
  */
 public class JFlyNode {
     /**

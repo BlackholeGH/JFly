@@ -20,17 +20,24 @@ import javax.swing.border.EmptyBorder;
 import static jfly.FlyLauncher.getLogoIcons;
 
 /**
- *
- * @author Blackhole
+ * The FlyListenOpts is an extension of FlyLauncher that shares some functionality, and represents a GUI pane that displays additional options for connection listening.
+ * @author Blackhole (dg7239p)
  */
 public class FlyListenOpts extends FlyLauncher
 {
+    /**
+     * The FlyListenOpts constructor.
+     * @param node The associated JFlyNode for this FlyListenOpts.
+     */
     public FlyListenOpts(JFlyNode node)
     {
         super(node);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         viewOptions();
     }
+    /**
+     * Creates and displays the node listener options GUI pane.
+     */
     public void viewOptions()
     {
         setIconImages(getLogoIcons());
@@ -134,6 +141,10 @@ public class FlyListenOpts extends FlyLauncher
 
         setVisible(true);  // Needed to ensure that the items can be seen.
     }
+    /**
+     * actionPerformed() override to handle ActionEvents.
+     * @param ae The ActionEvent to be handled.
+     */
     @Override
     public void actionPerformed(ActionEvent ae)
     {

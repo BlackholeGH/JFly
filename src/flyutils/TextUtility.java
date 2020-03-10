@@ -8,10 +8,15 @@ package flyutils;
 import java.util.regex.Pattern;
 
 /**
- *
- * @author dg7239p
+ * The TextUtility class is a utility class that contains static methods for processing Strings.
+ * @author Blackhole (dg7239p)
  */
 public class TextUtility {
+    /**
+     * Replaces reserved JFly character sequences with standiins.
+     * @param text The String to be sanitized.
+     * @return The sanitized String.
+     */
     public static String sanitizeText(String text)
     {
         if(text == null) { return null; }
@@ -21,6 +26,11 @@ public class TextUtility {
         text = text.replace("/-/", "[NCSPRINTOUTSEPARATOR]");
         return text;
     }
+    /**
+     * Replaces stand-in character sequences with the reserved JFly character sequences that they represent.
+     * @param text The String to be desanitized.
+     * @return The desanitized String.
+     */
     public static String desanitizeText(String text)
     {
         if(text == null) { return null; }

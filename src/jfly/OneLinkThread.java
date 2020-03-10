@@ -22,7 +22,7 @@ import javax.swing.JOptionPane;
 /**
  * The OneLinkThread class is the abstract class for connection thread handling.
  * A given OneLinkThread manages data sent and received over a single socket connection and handles the various types of data that it receives, informing its associated JFlyNode when necessary.
- * @author dg7239p
+ * @author Blackhole (dg7239p)
  */
 public abstract class OneLinkThread implements Runnable
 {

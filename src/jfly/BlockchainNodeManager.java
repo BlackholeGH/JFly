@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 /**
  * The BlockchainNodeManager class is responsible for maintaining, writing to, and reading from the local JFly blockchain.
- * @author dg7239p
+ * @author Blackhole (dg7239p)
  */
 public class BlockchainNodeManager {
     private HashMap sharedStateBlocks = new HashMap();

@@ -26,12 +26,16 @@ import javax.swing.JPanel;
 import javax.swing.ImageIcon;
 
 /**
- *
- * @author Blackhole
+ * The FlyLauncher class extends JFrame and represents a GUI element that displays JFly launcher options.
+ * @author Blackhole (dg7239p)
  */
 public class FlyLauncher extends JFrame implements ActionListener
 {
     protected JFlyNode myNode;
+    /**
+     * The FlyLauncher constructor.
+     * @param node The associated JFlyNode for this FlyLauncher instance.
+     */
     public FlyLauncher(JFlyNode node)
     {
         myNode = node;
@@ -42,6 +46,11 @@ public class FlyLauncher extends JFrame implements ActionListener
             viewLauncher();
         }
     }
+    /**
+     * Returns a new WindowListener object that will shutdown the JFlyNode if the window it is added to is exited.
+     * @param myNode The JFlyNode to shutdown.
+     * @return The new WindowListener implementation instance.
+     */
     public static WindowListener getExitListener(JFlyNode myNode)
     {
         //Remember this anonymous class syntax. Very useful.
@@ -63,10 +72,20 @@ public class FlyLauncher extends JFrame implements ActionListener
     Font fntSmall = new Font("Ariel", Font.PLAIN, 12);
     static String fLogo = System.getProperty("user.dir") + "\\Img\\JFlogo2.png";
     static String fLogoSimple = System.getProperty("user.dir") + "\\Img\\JFlogoSimplified.png";
+    /**
+     * Gets the JFly logo icon in 50x50 size.
+     * @return The JFly logo icon.
+     */
     public static Image getLogoIcon()
     {
         return getLogoIcon(50, 50);
     }
+    /**
+     * Gets the JFly logo icon in specified dimensions.
+     * @param width The scaled width of the icon to get.
+     * @param height The scaled height of the icon to get.
+     * @return The JFly logo icon scaled to the specified dimensions.
+     */
     public static Image getLogoIcon(int width, int height)
     {
         try
@@ -76,6 +95,12 @@ public class FlyLauncher extends JFrame implements ActionListener
         }
         catch(IOException e) { return null; }
     }
+    /**
+     * Gets the simplified JFly logo icon in specified dimensions.
+     * @param width The scaled width of the icon to get.
+     * @param height The scaled height of the icon to get.
+     * @return The simplified JFly logo icon scaled to the specified dimensions.
+     */
     public static Image getSimpleLogoIcon(int width, int height)
     {
         try
@@ -85,6 +110,10 @@ public class FlyLauncher extends JFrame implements ActionListener
         }
         catch(IOException e) { return null; }
     }
+    /**
+     * Gets a list of simplified JFly logo icons to be used as window icons.
+     * @return A list of simplified JFly logo icons in multiple sizes.
+     */
     public static ArrayList<Image> getLogoIcons()
     {
         ArrayList<Image> out = new ArrayList();
@@ -93,6 +122,9 @@ public class FlyLauncher extends JFrame implements ActionListener
         out.add(getSimpleLogoIcon(16, 16));
         return out;
     }
+    /**
+     * Creates and displays the FlyLauncher GUI interface.
+     */
     public void viewLauncher()
     {
         setIconImages(getLogoIcons());
@@ -235,6 +267,10 @@ public class FlyLauncher extends JFrame implements ActionListener
     Boolean sharedWarningFlag = false;
     protected int targetPort = 44665;
     String targetIP = "";
+    /**
+     * actionPerformed override for handling ActionEvents.
+     * @param ae The ActionEvent to be handled.
+     */
     @Override
     public void actionPerformed(ActionEvent ae)
     {
