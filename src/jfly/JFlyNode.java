@@ -219,6 +219,7 @@ public class JFlyNode {
                         {
                             for(int i = 1; i < usrIDs.size(); i++)
                             {
+                                if(usrIDs.get(i).equals(getUserID())) { continue; }
                                 myNode.crossNetworkSeekNode("USERHASHID|" + usrIDs.get(i));
                             }
                         }
