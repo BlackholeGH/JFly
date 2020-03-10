@@ -5,8 +5,8 @@
  */
 package jfly;
 
-import jutils.TextUtility;
-import jutils.NetworkConfigurationState;
+import flyutils.TextUtility;
+import flyutils.NetworkConfigurationState;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -133,7 +133,7 @@ public abstract class OneLinkThread implements Runnable
     Boolean introduction = true;
     protected void handleTransient(String transientBody)
     {
-        String[] brokenTransient = transientBody.split("+-+");
+        String[] brokenTransient = transientBody.split(Pattern.quote("+-+"));
         switch(brokenTransient[0])
         {
             case "responseping":

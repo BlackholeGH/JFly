@@ -5,8 +5,8 @@
  */
 package jfly;
 
-import jutils.TextUtility;
-import jutils.NetworkConfigurationState;
+import flyutils.TextUtility;
+import flyutils.NetworkConfigurationState;
 import java.util.ArrayList;
 import org.junit.After;
 import org.junit.AfterClass;

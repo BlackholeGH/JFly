@@ -5,8 +5,8 @@
  */
 package jfly;
 
-import jutils.TextUtility;
-import jutils.NetworkConfigurationState;
+import flyutils.TextUtility;
+import flyutils.NetworkConfigurationState;
 import java.util.concurrent.*;
 import java.io.PrintWriter;
 import java.net.Socket;
