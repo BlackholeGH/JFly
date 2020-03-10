@@ -266,7 +266,7 @@ public class JFlyNode {
         ArrayList<String> expiredTransients = new ArrayList();
         for(String s : transientMessages)
         {
-            String[] strs = s.split(Pattern.quote(":+:"), -1);
+            String[] strs = s.split(Pattern.quote(":~:"), -1);
             long timeSent = Long.decode(strs[0]);
             if(time() - timeSent > 30000) { expiredTransients.add(s); }
             if(strs[1].equals(tpHash))
@@ -276,12 +276,12 @@ public class JFlyNode {
         }
         for(String eT : expiredTransients)
         {
-            if(eT == foundStr) { continue; }
+            //if(eT == foundStr) { continue; }
             transientMessages.remove(foundStr);
         }
         if(foundStr != null)
         {
-            transientMessages.remove(foundStr);
+            //transientMessages.remove(foundStr);
             return false;
         }
         else
