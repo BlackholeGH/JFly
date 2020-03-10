@@ -98,8 +98,10 @@ public class JFlyNode {
      */
     public void shutdownNode(Boolean relaunch)
     {
+        //A new runnable implementation is created
         Runnable finalShutdownThread = () -> 
         {
+            //Various threads are shutdown and GUI elements disposed.
             Thread.currentThread().setName("Shutdown cleanup thread");
             if(pingerThread != null) { pingerThread.interrupt(); }
             if(coordinatorThread != null) { coordinatorThread.interrupt(); }
@@ -134,12 +136,14 @@ public class JFlyNode {
         threadListLock.lock();
         try
         {
+            //The ConnectionThreadDirectory is cloned.
             if(!ConnectionThreadDirectory.isEmpty()) 
             {
                 ctdCopy = (ArrayList)ConnectionThreadDirectory.clone();
             }
         }
         finally { threadListLock.unlock(); }
+        //Each OneLinkThread is "pinged" by having queryReplies called upon it.
         if(ctdCopy != null)
         {
             for(Object o : ctdCopy)
@@ -172,6 +176,7 @@ public class JFlyNode {
         public void run()
         {
             Thread.currentThread().setName("Connection autoping thread");
+            //Threads will periodically be pinged every five seconds.
             while(!myNode.shuttingDown())
             {
                 try
@@ -207,6 +212,7 @@ public class JFlyNode {
         public void run()
         {
             Thread.currentThread().setName("Coordination layer thread");
+            //The coordinator layer thread will cycle through every ten seconds.
             while(!myNode.shuttingDown())
             {
                 try
@@ -215,9 +221,12 @@ public class JFlyNode {
                     if(usrIDs.size() > 0)
                     {
                         usrIDs.sort(null);
+                        //The coordinator is selected by choosing the node on the network that has the unique ID that is alphabetically first.
+                        //As these IDs are based on a unique hash, collisions are extremely unlikely.
                         if(myNode.getUserID().equals(usrIDs.get(0)))
                         {
                             System.out.println("I am coordinator!");
+                            //The coordinator will periodically attempt to contact other nodes on the network.
                             for(int i = 1; i < usrIDs.size(); i++)
                             {
                                 System.out.println("CSeek: " + usrIDs.get(i));
