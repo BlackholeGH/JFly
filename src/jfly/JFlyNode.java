@@ -217,9 +217,10 @@ public class JFlyNode {
                         usrIDs.sort(null);
                         if(myNode.getUserID().equals(usrIDs.get(0)))
                         {
+                            System.out.println("I am coordinator!");
                             for(int i = 1; i < usrIDs.size(); i++)
                             {
-                                if(usrIDs.get(i).equals(getUserID())) { continue; }
+                                System.out.println("CSeek: " + usrIDs.get(i));
                                 myNode.crossNetworkSeekNode("USERHASHID|" + usrIDs.get(i));
                             }
                         }
