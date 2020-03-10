@@ -166,8 +166,7 @@ public class BlockchainNodeManager {
                 myNode.resetAddress(authoredUser.getIP(), this);
             }
         }
-        FlyChatGUI myGUI = myNode.getGUI();
-        if(myGUI != null) { myGUI.remoteSetTextBox(myNode.getLastMessages(50)); }
+        myNode.updateChatWindow();
         //calculateConfigs(myNode.getNCS(), 1);
     }
     public String tryOneHash()

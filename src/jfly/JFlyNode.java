@@ -217,8 +217,10 @@ public class JFlyNode {
                         usrIDs.sort(null);
                         if(myNode.getUserID().equals(usrIDs.get(0)))
                         {
+                            System.out.println("I am coordinator!");
                             for(int i = 1; i < usrIDs.size(); i++)
                             {
+                                System.out.println("CSeek: " + usrIDs.get(i));
                                 myNode.crossNetworkSeekNode("USERHASHID|" + usrIDs.get(i));
                             }
                         }
@@ -394,6 +396,10 @@ public class JFlyNode {
     {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(getUserID()));
         closeAll();
+    }
+    public synchronized void updateChatWindow()
+    {
+        if(myGUI != null) { myGUI.remoteSetTextBox(getLastMessages(50)); }
     }
     /**
      * Retrieve the last x chat messages from the Blockchain.
@@ -620,7 +626,7 @@ public class JFlyNode {
             if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
             {
                 seekers.put("SEEK|" + userHashID, time());
-                String transientBody = "seeking+-+" + getUserID();
+                String transientBody = "seeking+-+" + userHashID;
                 OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                 sendJobToThreads(seekingTransient, null);
             }
