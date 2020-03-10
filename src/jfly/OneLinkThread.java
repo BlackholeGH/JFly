@@ -106,6 +106,7 @@ public abstract class OneLinkThread implements Runnable
         try
         {
             String outData = myJob.getHeader() + ":~:" + myJob.getData();
+            System.out.println("Dispatching one: " + outData);
             outLine.println(outData);
             recentDispatchLog.add(JFlyNode.time() + ":~:" + getConnectionAddr() + ":~:" + outData);
         }
