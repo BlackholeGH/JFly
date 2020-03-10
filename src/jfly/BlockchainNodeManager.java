@@ -83,7 +83,11 @@ public class BlockchainNodeManager {
                         break;
                     }
                 }
-                if(oldUser != null) { newUsers.remove(oldUser); }
+                if(oldUser != null)
+                {
+                    newUsers.remove(oldUser);
+                    myNode.crossNetworkSeekNode("", oldUser.getID());
+                }
             }
         }
         cur.reWriteAll(newUsers);

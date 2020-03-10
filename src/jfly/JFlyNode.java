@@ -591,8 +591,21 @@ public class JFlyNode {
      * Perform seeking operations across the network for a given user.
      * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
      */
-    public synchronized void crossNetworkSeekNode(String userIDorResponseTransient)
+    public void crossNetworkSeekNode(String userIDorResponseTransient)
     {
+        crossNetworkSeekNode(userIDorResponseTransient, null);
+    }
+    /**
+     * Perform seeking operations across the network for a given user.
+     * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
+     * @param purge A user to manually remove from the seekers list.
+     */
+    public synchronized void crossNetworkSeekNode(String userIDorResponseTransient, String purge)
+    {
+        if(purge != null)
+        {
+            if(seekers.containsKey(purge)) { seekers.remove(purge); }
+        }
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
             String findUsrID = (userIDorResponseTransient.split(":~:", -1)[1]).split("+-+", -1)[1];
