@@ -54,6 +54,8 @@ public class FlyLauncher extends JFrame implements ActionListener
         };
         return exiter;
     }
+// 
+//--------------------------------------------------------------------------------------------------------------------
     FocusVerifier fL = new FocusVerifier();
     Font fnt = new Font("Ariel", Font.PLAIN, 18);
     Font fntBold = new Font("Ariel", Font.BOLD, 18);
