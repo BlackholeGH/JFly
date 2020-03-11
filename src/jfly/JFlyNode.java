@@ -21,7 +21,11 @@ import java.net.InetSocketAddress;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 /**
- *
+ * The JFlyNode class represents the top level network "node" object for this application. Creating a JFlyNode instance starts the application.
+ * Only one instance should exist at a time, and a singleton pattern is used to ensure this.
+ * The JFlyNode manages all the other data classes and connection threads, and performs operations and data handling.
+ * Most other class instances will have a reference to the application's JFlyNode instance, and can influence it via public methods.
+ * The JFlyNode holds references to any GUI windows and will update them with application data to be displayed.
  * @author Blackhole (dg7239p)
  */
 public class JFlyNode {
