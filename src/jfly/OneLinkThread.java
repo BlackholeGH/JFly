@@ -118,18 +118,18 @@ public abstract class OneLinkThread implements Runnable
             //If an acknowledgement for a sent message was not received, missed is incremented.
             if(JFlyNode.time() - timeSent > 5000) { missed++; }
             //Initially, a missed message only triggers queries.
-            if(missed > 0 && missed < 3)
+            if(missed > 0 && missed < 1)
             {
                 JFlyNode.OutputJobInfo missedJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
                 oneDispatch(missedJob);
             }
             //If the remote node consistently does not respond, the local node is asked to try to contact the remote node by other means.
-            else if(missed == 3)
+            else if(missed == 2)
             {
-                missed = 4;
+                missed = 3;
                 if(!jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()).equals("UNKNOWN_USER"))
                 {
-                    jNode.crossNetworkSeekNode("USERHASHID|" + jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()));
+                    jNode.crossNetworkSeekNode("USERHASHID|" + jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()), true);
                 }
             }
         }

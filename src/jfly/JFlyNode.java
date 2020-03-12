@@ -640,14 +640,24 @@ public class JFlyNode {
      */
     public void crossNetworkSeekNode(String userIDorResponseTransient)
     {
-        crossNetworkSeekNode(userIDorResponseTransient, null);
+        crossNetworkSeekNode(userIDorResponseTransient, null, false);
+    }
+     /**
+     * Perform seeking operations across the network for a given user.
+     * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
+     * @param fullWipe True/false value to temporarily wipe the seekers record.
+     */
+    public void crossNetworkSeekNode(String userIDorResponseTransient, Boolean fullWipe)
+    {
+        crossNetworkSeekNode(userIDorResponseTransient, null, fullWipe);
     }
     /**
      * Perform seeking operations across the network for a given user.
      * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
      * @param purge A user to manually remove from the seekers list.
+     * @param fullWipe True/false value to temporarily wipe the seekers record.
      */
-    public synchronized void crossNetworkSeekNode(String userIDorResponseTransient, String purge)
+    public synchronized void crossNetworkSeekNode(String userIDorResponseTransient, String purge, Boolean fullWipe)
     {
         //The purge functionality is used to remove a node from the seekers list, i.e. if a new USER_LEFT block is published for that node.
         if(purge != null)
@@ -655,6 +665,7 @@ public class JFlyNode {
             if(seekers.containsKey("SEEK|" + purge)) { seekers.remove("SEEK|" + purge); }
             else if(seekers.containsKey("CONTACT|" + purge)) { seekers.remove("CONTACT|" + purge); }
         }
+        if(fullWipe) { seekers.clear(); }
         //If the input is a transient message, then it is checked to see if it is a response ping from a node being sought.
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
