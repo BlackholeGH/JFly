@@ -1036,6 +1036,7 @@ public class JFlyNode {
                     try
                     {
                         String received = inLine.nextLine();
+                        System.out.println("Data received: " + received);
                         String[] datParts = received.split(":~:", -1);
                         //Replies with ACKs to messages.
                         if(!datParts[0].equals("JFLYMSGACK"))
@@ -1047,6 +1048,7 @@ public class JFlyNode {
                         {
                             //Transients received are forwarded if allowed.
                             case "JFLYTRANSIENT":
+                                handleTransient(datParts[1]);
                                 if(jNode.allowTransientForwarding(datParts[1]))
                                 {
                                     doPanthreadDispatch(datParts[1], "JFLYTRANSIENT");
@@ -1062,6 +1064,7 @@ public class JFlyNode {
                                 break;
                             //If the quester request has been accepted, the superclass run() is called and the OneLinkThread operates normally.
                             case "JFLYQUESTERRESPONSE":
+                                jNode.crossNetworkSeekNode("", jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()), false);
                                 threadQuesting = false;
                                 inputLock.unlock();
                                 outputLock.unlock();
