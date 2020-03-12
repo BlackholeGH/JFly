@@ -1066,6 +1066,7 @@ public class JFlyNode {
                                 break;
                             //If the quester request has been accepted, the superclass run() is called and the OneLinkThread operates normally.
                             case "JFLYQUESTERRESPONSE":
+                                System.out.println("Quester request accepted!");
                                 jNode.crossNetworkSeekNode("", jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()), false);
                                 threadQuesting = false;
                                 inputLock.unlock();
@@ -1078,8 +1079,17 @@ public class JFlyNode {
                     finally { inputLock.unlock(); }
                     if(stopping || !threadQuesting) { break; }
                 }
+                System.out.println("Reverting to super.run()");
                 super.run();
             }
+        }
+        /**
+         * Override for query replies to prevent odd operations while questing.
+         */
+        @Override
+        public void queryReplies()
+        {
+            if(!threadQuesting) { super.queryReplies(); }
         }
     }
 }
