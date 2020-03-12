@@ -661,18 +661,23 @@ public class JFlyNode {
             String findUsrID = (userIDorResponseTransient.split(Pattern.quote(":~:"), -1)[1]).split(Pattern.quote("+-+"), -1)[1];
             if(seekers.containsKey("SEEK|" + findUsrID))
             {
-                seekers.remove("SEEK|" + findUsrID);
+                seekers.put("SEEK|" + findUsrID, -time());
             }
             else if(seekers.containsKey("CONTACT|" + findUsrID))
             {
-                seekers.remove("CONTACT|" + findUsrID);
+                seekers.put("CONTACT|" + findUsrID, -time());
             }
         }
         //If the input is a user's hash ID, then we attempt to contact that user with a transient message to be relayed.
         else if(userIDorResponseTransient.startsWith("USERHASHID"))
         {
             String userHashID = userIDorResponseTransient.replaceAll(Pattern.quote("USERHASHID|"), "");
-            if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
+            Boolean containsAlready = true;
+            long contents = 0;
+            if(seekers.containsKey("SEEK|" + userHashID)) { contents = (long)seekers.get("SEEK|" + userHashID); }
+            else if(seekers.containsKey("CONTACT|" + userHashID)) { contents = (long)seekers.get("CONTACT|" + userHashID); }
+            else { containsAlready = false; }
+            if(!containsAlready || (containsAlready && contents < 0));
             {
                 seekers.put("SEEK|" + userHashID, time());
                 String transientBody = "seeking+-+" + userHashID + "+-+" + time();
@@ -692,18 +697,26 @@ public class JFlyNode {
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
                     long seekTime = (long)seekers.get(hashIDo);
-                    //If the seek time has expired, then a transient is sent out with instructions for other nodes to attempt to directly contact the missing node.
-                    if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
+                    if(seekTime >= 0)
                     {
-                        seekers.put("CONTACT|" + hashID, time());
-                        String transientBody = "forcecontact+-+" + hashID + "+-+" + time();
-                        OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
-                        sendJobToThreads(seekingTransient, null);
+                        //If the seek time has expired, then a transient is sent out with instructions for other nodes to attempt to directly contact the missing node.
+                        if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
+                        {
+                            seekers.remove(hashIDo);
+                            seekers.put("CONTACT|" + hashID, time());
+                            String transientBody = "forcecontact+-+" + hashID + "+-+" + time();
+                            OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
+                            sendJobToThreads(seekingTransient, null);
+                        }
+                        else if(mode.equals("CONTACT") && time() - seekTime > contactTolerance)
+                        {
+                            seekers.remove(hashIDo);
+                            issueTimeout(hashID);
+                        }
                     }
-                    else if(mode.equals("CONTACT") && time() - seekTime > contactTolerance)
+                    else
                     {
-                        seekers.remove(hashIDo);
-                        issueTimeout(hashID);
+                        if(seekTime - -time() > 4000) { seekers.remove(hashIDo); }
                     }
                 }
             }
