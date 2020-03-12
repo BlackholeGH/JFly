@@ -1030,7 +1030,7 @@ public class JFlyNode {
             else
             {
                 //A questing thread has a reduced number of possible responses, designed to only handle quester responses and transients.
-                while(inLine.hasNextLine())
+                while(inLine != null && inLine.hasNextLine())
                 {
                     inputLock.lock();
                     try
