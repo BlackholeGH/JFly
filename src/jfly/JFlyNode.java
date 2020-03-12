@@ -967,6 +967,7 @@ public class JFlyNode {
         public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing)
         {
             super(myNode);
+            threadQuesting = questing;
             if(threadQuesting)
             {
                 outputLock.lock();
