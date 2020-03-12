@@ -141,13 +141,14 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testGetByHash() {
         System.out.println("getByHash");
+        NetworkConfigurationState cur = new NetworkConfigurationState();
+        NetworkConfigurationState.UserInfo test = cur.get("A Hash");
         String hash = "";
-        BlockchainNodeManager instance = null;
-        String expResult = "";
-        String result = instance.getByHash(hash);
-        assertEquals(expResult, result);
+        String expResult = "A Hash";
+        String result = instance.getByHash(u.getHash());
+        assertEquals(test.getUserName(), result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
