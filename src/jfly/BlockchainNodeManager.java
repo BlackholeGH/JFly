@@ -302,7 +302,6 @@ public class BlockchainNodeManager {
                             hashChain.add(lastBlockHash);
                             sharedStateBlocks.put(lastBlockHash, curReInsert);
                         }
-                        calculateConfigs(myNode.getNCS(), lastDepth);
                         lastDepth = 0;
                         //If the previous hash of the block to be added is not in the blockchain, this method returns and requests the missing previous block.
                         return new Object[] { 2, extBlock.getHash() };

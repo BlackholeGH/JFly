@@ -150,7 +150,6 @@ public abstract class OneLinkThread implements Runnable
             String outData = myJob.getHeader() + ":~:" + myJob.getData();
             System.out.println("Dispatching one: " + outData);
             outLine.println(outData);
-            System.out.println(outLine.checkError());
             //For any data dispatch, the recentDispatchLog records the time, target and data.
             recentDispatchLog.add(JFlyNode.time() + ":~:" + getConnectionAddr() + ":~:" + outData);
         }
@@ -383,15 +382,15 @@ public abstract class OneLinkThread implements Runnable
             try
             {
                 //A request for the previous block is sent.
-                JFlyNode.OutputJobInfo prevReqJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split("|")[0], "JFLYCHAINBLOCKREQUEST");
+                JFlyNode.OutputJobInfo prevReqJob = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.INTERNAL_LOCK, datParts[1].split(Pattern.quote("|"))[0], "JFLYCHAINBLOCKREQUEST");
                 prevReqJob.setToken(outputLock);
                 oneDispatch(prevReqJob);
                 //The input stream is coopted to monitor for the block request response.
                 while(inLine.hasNextLine())
                 {
                     String received = inLine.nextLine();
-                    String[] responseParts = nextLine.split(":~:");
-                    if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split("|")[0]))
+                    String[] responseParts = nextLine.split(Pattern.quote(":~:"));
+                    if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split(Pattern.quote("|"))[0]))
                     {
                         if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND"))
                         {
