@@ -159,7 +159,7 @@ public class BlockchainNodeManager {
             else if(current.getContentType() == SharedStateBlock.ContentType.USER_LEFT)
             {
                 //Date mDate = new Date(current.getCreationTime());
-                msgs.add(myNode.getNCS().getUserNameFromID(current.getOUID()) + " left this cluster.");
+                msgs.add((current.getContentData().split(Pattern.quote("+-+")))[1] + " left this cluster.");
             }
             //System utility messages are also displayed in the chat window.
             else if(current.getContentType() == SharedStateBlock.ContentType.SYSTEM_UTIL)
@@ -203,7 +203,6 @@ public class BlockchainNodeManager {
         SharedStateBlock newBlock = new SharedStateBlock(this, newContentType, newContentData, lastHash());
         //We attempt to add the new block to the blockchain.
         Object[] authorRes = addExtantBlockToChain(newBlock.toString());
-        System.out.println(authorRes);
         int adder = (int)authorRes[0];
         //If the block was successfully authored and integrated, it is forwarded to all other connected nodes.
         if(adder == 0 || adder == 1)
