@@ -657,9 +657,13 @@ public class JFlyNode {
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
             String findUsrID = (userIDorResponseTransient.split(Pattern.quote(":~:"), -1)[1]).split(Pattern.quote("+-+"), -1)[1];
-            if(seekers.containsKey("SEEK|" + findUsrID) || seekers.containsKey("CONTACT|" + findUsrID))
+            if(seekers.containsKey("SEEK|" + findUsrID))
             {
-                seekers.put(findUsrID, "RESPONSE_RECEIVED|RESPONSE_RECEIVED");
+                seekers.remove("SEEK|" + findUsrID);
+            }
+            else if(seekers.containsKey("CONTACT|" + findUsrID))
+            {
+                seekers.remove("CONTACT|" + findUsrID);
             }
         }
         //If the input is a user's hash ID, then we attempt to contact that user with a transient message to be relayed.
