@@ -99,12 +99,11 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testGetJNode() {
         System.out.println("getJNode");
-        BlockchainNodeManager instance = null;
         JFlyNode expResult = null;
         JFlyNode result = instance.getJNode();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -115,7 +114,6 @@ public class BlockchainNodeManagerIT {
         System.out.println("authorBlock");
         BlockchainNodeManager.SharedStateBlock.ContentType newContentType = null;
         String newContentData = "";
-        BlockchainNodeManager instance = null;
         instance.authorBlock(newContentType, newContentData);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
