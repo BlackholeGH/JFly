@@ -707,6 +707,7 @@ public class JFlyNode {
                             String transientBody = "forcecontact+-+" + hashID + "+-+" + time();
                             OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                             sendJobToThreads(seekingTransient, null);
+                            attemptContact(hashID);
                         }
                         else if(mode.equals("CONTACT") && time() - seekTime > contactTolerance)
                         {
