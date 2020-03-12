@@ -362,6 +362,7 @@ public abstract class OneLinkThread implements Runnable
     {
         handleNewBlock(nextLine, datParts, false);
     }
+    private String lastRecursiveInsertHash = "";
     /**
      * Interfaces with this OneLinkThread's associated JFlyNode's BlockChainManager in order to integrate a newly received blockchain block into the local blockchain.
      * @param nextLine The full received data.
@@ -410,7 +411,10 @@ public abstract class OneLinkThread implements Runnable
                     else { receivedDuringBlocking.add(received); }
                 }
                 System.out.println("Attempting to add initial block cascader...");
-                String secondResult = jNode.tryOneBlock(datParts[1]);
+                String initBlockCasc = datParts[1];
+                initBlockCasc = initBlockCasc.substring(initBlockCasc.indexOf(Pattern.quote("|")));
+                System.out.println(initBlockCasc);
+                String secondResult = jNode.tryOneBlock(initBlockCasc);
                 if(!secondResult.contains("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
                 else
                 {
@@ -434,6 +438,10 @@ public abstract class OneLinkThread implements Runnable
         }
         else if(result.contains("SUCCESSFULLY_INTEGRATED"))
         {
+            if(recursive)
+            {
+                lastRecursiveInsertHash = result.replace(Pattern.quote("SUCCESSFULLY_INTEGRATED:"), "");
+            }
             //If the introduction flag is not set, then this user still needs to choose a username and publish a USER_JOINED block.
             if(!introduction)
             {
