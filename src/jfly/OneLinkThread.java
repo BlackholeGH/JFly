@@ -211,7 +211,15 @@ public abstract class OneLinkThread implements Runnable
                 break;
             //A transient can cause this node to attempt to directly contact another.
             case "forcecontact":
-                jNode.attemptContact(brokenTransient[1]);
+                if(brokenTransient[1].equals(jNode.getUserID()))
+                {
+                    jNode.issueExistenceTransient();
+                    jNode.allowTransientForwarding(transientBody);
+                }
+                else
+                {
+                    jNode.attemptContact(brokenTransient[1]);
+                }
                 break;
         }
     }
