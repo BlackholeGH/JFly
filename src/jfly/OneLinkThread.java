@@ -391,6 +391,8 @@ public abstract class OneLinkThread implements Runnable
                     String received = inLine.nextLine();
                     System.out.println("Received data during block request wait: " + received);
                     String[] responseParts = nextLine.split(Pattern.quote(":~:"));
+                    System.out.println(responseParts[1]);
+                    System.out.println(datParts[1].split(Pattern.quote("|"))[0]);
                     if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split(Pattern.quote("|"))[0]))
                     {
                         System.out.println("Recognized response!");
