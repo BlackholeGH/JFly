@@ -657,7 +657,7 @@ public class JFlyNode {
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
         {
             String findUsrID = (userIDorResponseTransient.split(Pattern.quote(":~:"), -1)[1]).split(Pattern.quote("+-+"), -1)[1];
-            if(seekers.containsKey(findUsrID))
+            if(seekers.containsKey("SEEK|" + findUsrID) || seekers.containsKey("CONTACT|" + findUsrID))
             {
                 seekers.put(findUsrID, "RESPONSE_RECEIVED|RESPONSE_RECEIVED");
             }
@@ -689,7 +689,7 @@ public class JFlyNode {
                     if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
                     {
                         seekers.put("CONTACT|" + hashID, time());
-                        String transientBody = "forcecontact+-+" + getUserID() + "+-+" + time();
+                        String transientBody = "forcecontact+-+" + hashID + "+-+" + time();
                         OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                         sendJobToThreads(seekingTransient, null);
                     }
