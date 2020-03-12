@@ -707,7 +707,16 @@ public class JFlyNode {
                     System.out.println(hashIDo);
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
-                    long seekTime = (long)seekers.get(hashIDo);
+                    long seekTime = 0;
+                    try
+                    {
+                        seekTime = (long)seekers.get(hashIDo);
+                    }
+                    catch(Exception e)
+                    {
+                        System.out.println(hashIDo);
+                        System.out.println(seekers);
+                    }
                     if(seekTime >= 0)
                     {
                         //If the seek time has expired, then a transient is sent out with instructions for other nodes to attempt to directly contact the missing node.
@@ -958,7 +967,11 @@ public class JFlyNode {
         public ClientStyleThread(Object[] params, JFlyNode myNode, Boolean questing)
         {
             super(myNode);
-            if(threadQuesting) { outputLock.lock(); }
+            if(threadQuesting)
+            {
+                outputLock.lock();
+                System.out.println("Opened quester thread.");
+            }
             try
             {
                 String ipAddr = (String)params[0];
@@ -974,15 +987,26 @@ public class JFlyNode {
                 //A ClientStyleThread can have the socket connection fail, and if so the application restarts.
                 if(!mySocket.isConnected())
                 {
-                    if(threadQuesting) { outputLock.unlock(); }
-                    System.out.println("Here");
-                    JOptionPane.showMessageDialog(myNode.getGUI(), "Could not connect to the specified IP...");
-                    myNode.shutdownNode(true);
+                    if(threadQuesting)
+                    {
+                        outputLock.unlock();
+                        stop(false);
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(myNode.getGUI(), "Could not connect to the specified IP...");
+                        myNode.shutdownNode(true);
+                    }
                 }
                 else
                 {
                     inLine = new Scanner(mySocket.getInputStream());
                     outLine = new PrintWriter(mySocket.getOutputStream(), true);
+                    if(threadQuesting)
+                    {
+                        OutputJobInfo quest = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Sending_reconnect_quester", "JFLYQUESTERREQUEST");
+                        oneDispatch(quest);
+                    }
                 }
             }
             catch(IOException e)
