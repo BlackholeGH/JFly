@@ -6,6 +6,7 @@
 package jfly;
 
 import flyutils.NetworkConfigurationState;
+import javax.swing.JOptionPane;
 import static jfly.NetworkConfigurationStateIT.instance;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,6 +65,7 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of calculateConfigs method, of class BlockchainNodeManager.
      */
+    //done
     @Test
     public void testCalculateConfigs() {
         System.out.println("calculateConfigs");
@@ -81,13 +83,14 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of getLast method, of class BlockchainNodeManager.
      */
+    //needs doing
     @Test
     public void testGetLast() {
         System.out.println("getLast");
         int depth = -1;      
-        String[] expResult = null;
-        String[] result = instance.getLast(depth);
-        assertArrayEquals(expResult, result);
+       // String[] expResult = u2.contentType.MESSAGE.toString();
+        String[] result = instance.getLast(depth);   
+     //   assertArrayEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
        
         //fail("The test case is a prototype.");
@@ -96,6 +99,7 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of getJNode method, of class BlockchainNodeManager.
      */
+    //needs doing
     @Test
     public void testGetJNode() {
         System.out.println("getJNode");
@@ -109,10 +113,10 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of authorBlock method, of class BlockchainNodeManager.
      */
+    //done
     @Test
     public void testAuthorBlock() {
-        System.out.println("authorBlock");
-        String newContentData = "";
+        System.out.println("authorBlock");       
         instance.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, "sagsgasdgrfadsgadsgsdg");
         BlockchainNodeManager.SharedStateBlock retrievedBlock = new BlockchainNodeManager.SharedStateBlock(instance);
         retrievedBlock.selfInitialize(instance.getByHash(instance.lastHash()));
@@ -125,10 +129,11 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of tryOneHash method, of class BlockchainNodeManager.
      */
+    //Doneish
     @Test
     public void testTryOneHash() {
         System.out.println("tryOneHash");      
-        String expResult = u.getHash();u
+        String expResult = u.getHash();
         String result = instance.getByHash(u.getHash());
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
@@ -138,6 +143,7 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of getByHash method, of class BlockchainNodeManager.
      */
+    //doneish
     @Test
     public void testGetByHash() {
         System.out.println("getByHash");
@@ -151,21 +157,23 @@ public class BlockchainNodeManagerIT {
     /**
      * Test of addRegistrarTolerance method, of class BlockchainNodeManager.
      */
+    //not done
     @Test
     public void testAddRegistrarTolerance() {
         System.out.println("addRegistrarTolerance");
         int incr = 0;
         instance.addRegistrarTolerance(incr);
-//        String expResult = 
+       //String expResult = 
         // TODO review the generated test code and remove the default call to fail.
        // assertEquals(incr, this);
-        //fail("The test case is a prototype.");
+        fail("The test case is a prototype.");
     }
 
     /**
      * Test of addExtantBlockToChain method, of class BlockchainNodeManager.
      */
     @Test
+    //not done
     public void testAddExtantBlockToChain() {
         System.out.println("addExtantBlockToChain");
         String blockData = "";
