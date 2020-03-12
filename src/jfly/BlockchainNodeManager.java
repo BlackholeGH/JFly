@@ -221,6 +221,7 @@ public class BlockchainNodeManager {
             System.out.println("Block author failed with code: " + adder);
         }
         //Authoring a new block updates the chat window.
+        System.out.println("Block authored!");
         myNode.updateChatWindow();
         //calculateConfigs(myNode.getNCS(), 1);
     }
