@@ -150,6 +150,7 @@ public abstract class OneLinkThread implements Runnable
             String outData = myJob.getHeader() + ":~:" + myJob.getData();
             System.out.println("Dispatching one: " + outData);
             outLine.println(outData);
+            System.out.println(outLine.checkError());
             //For any data dispatch, the recentDispatchLog records the time, target and data.
             recentDispatchLog.add(JFlyNode.time() + ":~:" + getConnectionAddr() + ":~:" + outData);
         }
