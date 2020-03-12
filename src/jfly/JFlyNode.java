@@ -970,7 +970,6 @@ public class JFlyNode {
             threadQuesting = questing;
             if(threadQuesting)
             {
-                outputLock.lock();
                 System.out.println("Opened quester thread.");
             }
             try
@@ -990,7 +989,6 @@ public class JFlyNode {
                 {
                     if(threadQuesting)
                     {
-                        outputLock.unlock();
                         stop(false);
                     }
                     else
@@ -1070,7 +1068,6 @@ public class JFlyNode {
                                 jNode.crossNetworkSeekNode("", jNode.getNCS().getIDFromIP(mySocket.getInetAddress().getHostAddress()), false);
                                 threadQuesting = false;
                                 inputLock.unlock();
-                                outputLock.unlock();
                                 break;
                             default:
                                 break;
