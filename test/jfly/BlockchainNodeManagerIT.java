@@ -99,12 +99,11 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testGetJNode() {
         System.out.println("getJNode");
-        BlockchainNodeManager instance = null;
         JFlyNode expResult = null;
         JFlyNode result = instance.getJNode();
         assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        //fail("The test case is a prototype.");
     }
 
     /**
@@ -115,7 +114,6 @@ public class BlockchainNodeManagerIT {
         System.out.println("authorBlock");
         BlockchainNodeManager.SharedStateBlock.ContentType newContentType = null;
         String newContentData = "";
-        BlockchainNodeManager instance = null;
         instance.authorBlock(newContentType, newContentData);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
@@ -141,12 +139,9 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testGetByHash() {
         System.out.println("getByHash");
-        NetworkConfigurationState cur = new NetworkConfigurationState();
-        NetworkConfigurationState.UserInfo test = cur.get("A Hash");
-        String hash = "";
-        String expResult = "A Hash";
+        String expResult = u.toString();
         String result = instance.getByHash(u.getHash());
-        assertEquals(test.getUserName(), result);
+        assertEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
         //fail("The test case is a prototype.");
     }
@@ -158,10 +153,10 @@ public class BlockchainNodeManagerIT {
     public void testAddRegistrarTolerance() {
         System.out.println("addRegistrarTolerance");
         int incr = 0;
-        BlockchainNodeManager instance = null;
         instance.addRegistrarTolerance(incr);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(incr, this);
+        //fail("The test case is a prototype.");
     }
 
     /**
