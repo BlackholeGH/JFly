@@ -409,10 +409,12 @@ public abstract class OneLinkThread implements Runnable
                     //Any other data received during this is stored to later be processed.
                     else { receivedDuringBlocking.add(received); }
                 }
+                System.out.println("Attempting to add initial block cascader...");
                 String secondResult = jNode.tryOneBlock(datParts[1]);
                 if(!secondResult.contains("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }
                 else
                 {
+                    System.out.println("Re-added successfully!");
                     //If the introduction flag is not set, then this user still needs to choose a username and publish a USER_JOINED block.
                     if(!introduction)
                     {
@@ -425,7 +427,7 @@ public abstract class OneLinkThread implements Runnable
                         jNode.getBNM().authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, me.toString());
                         introduction = true;
                     }
-                    doPanthreadDispatch(jNode.getBNM().getByHash(result.replace("SUCCESSFULLY_INTEGRATED:", "")), datParts[0]);
+                    doPanthreadDispatch(jNode.getBNM().getByHash(secondResult.replace("SUCCESSFULLY_INTEGRATED:", "")), datParts[0]);
                 }
             }
             finally { if(!recursive && outputLock.isLocked()) { outputLock.unlock(); } }
