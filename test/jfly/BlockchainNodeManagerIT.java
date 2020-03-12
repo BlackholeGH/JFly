@@ -27,8 +27,8 @@ public class BlockchainNodeManagerIT {
     static BlockchainNodeManager.SharedStateBlock u2;
     @BeforeClass
     public static void setUpClass() {
-        JFlyNode.
-        instance = new BlockchainNodeManager();
+        JFlyNode tempnode = JFlyNode.makeJFlyNode();
+        instance = new BlockchainNodeManager(tempnode);
         u = new BlockchainNodeManager.SharedStateBlock(instance, BlockchainNodeManager.SharedStateBlock.ContentType.USER_JOINED, "192.168.0.1+-+Gagan+-+A Hash", "Another Hash");
         instance.addExtantBlockToChain(u.toString());
         u2 = new BlockchainNodeManager.SharedStateBlock(instance, BlockchainNodeManager.SharedStateBlock.ContentType.MESSAGE, "A message!", u.getHash());
@@ -67,12 +67,15 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testCalculateConfigs() {
         System.out.println("calculateConfigs");
-        NetworkConfigurationState cur = null;
-        int depth = 0;
-        BlockchainNodeManager instance = null;
+        NetworkConfigurationState cur = new NetworkConfigurationState();
+        int depth = -1;
         instance.calculateConfigs(cur, depth);
+        NetworkConfigurationState.UserInfo test = cur.getUserFromID(cur.getIDFromIP("192.168.0.1"));
+        System.out.println(test);
+        assertEquals(test.getUserName(), "Gagan");
+        
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+       //fail("The test case is a prototype.");
     }
 
     /**
@@ -81,13 +84,13 @@ public class BlockchainNodeManagerIT {
     @Test
     public void testGetLast() {
         System.out.println("getLast");
-        int depth = 0;
-        BlockchainNodeManager instance = null;
+        int depth = -1;      
         String[] expResult = null;
         String[] result = instance.getLast(depth);
         assertArrayEquals(expResult, result);
         // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+       
+        //fail("The test case is a prototype.");
     }
 
     /**
