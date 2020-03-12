@@ -440,7 +440,7 @@ public abstract class OneLinkThread implements Runnable
         {
             if(recursive)
             {
-                lastRecursiveInsertHash = result.replace(Pattern.quote("SUCCESSFULLY_INTEGRATED:"), "");
+                lastRecursiveInsertHash = result.replace("SUCCESSFULLY_INTEGRATED:", "");
             }
             //If the introduction flag is not set, then this user still needs to choose a username and publish a USER_JOINED block.
             if(!introduction)
