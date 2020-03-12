@@ -693,9 +693,9 @@ public class JFlyNode {
                         OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                         sendJobToThreads(seekingTransient, null);
                     }
-                    else if(time() - seekTime > contactTolerance)
+                    else if(mode.equals("CONTACT") && time() - seekTime > contactTolerance)
                     {
-                        seekers.remove(hashID);
+                        seekers.remove(hashIDo);
                         issueTimeout(hashID);
                     }
                 }
