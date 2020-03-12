@@ -1036,7 +1036,7 @@ public class JFlyNode {
                     try
                     {
                         String received = inLine.nextLine();
-                        System.out.println("Data received: " + received);
+                        System.out.println("Data received on quester thread: " + received);
                         String[] datParts = received.split(":~:", -1);
                         //Replies with ACKs to messages.
                         if(!datParts[0].equals("JFLYMSGACK"))
@@ -1076,6 +1076,7 @@ public class JFlyNode {
                                 break;
                         }
                     }
+                    catch(Exception e) { System.out.println("Exception during quester handling: " + e.getMessage()); }
                     finally { inputLock.unlock(); }
                     if(stopping || !threadQuesting) { break; }
                 }
