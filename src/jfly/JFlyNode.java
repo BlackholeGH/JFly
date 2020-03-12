@@ -682,6 +682,7 @@ public class JFlyNode {
                 Hashtable seekersCl = (Hashtable)seekers.clone();
                 for(Object hashIDo : seekersCl.keySet())
                 {
+                    System.out.println(hashIDo);
                     String hashID = ((String)hashIDo).split(Pattern.quote("|"))[1];
                     String mode = ((String)hashIDo).split(Pattern.quote("|"))[0];
                     long seekTime = (long)seekers.get(hashIDo);
