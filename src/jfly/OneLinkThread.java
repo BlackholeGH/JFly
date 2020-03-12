@@ -378,7 +378,7 @@ public abstract class OneLinkThread implements Runnable
         //If block integration fails, the previous block from the thread's remote node needs to be requested.
         if(result.equals("FAILED_REQUEST_PREVIOUS"))
         {
-            outputLock.lock();
+            if(!recursive) { outputLock.lock(); }
             try
             {
                 //A request for the previous block is sent.
@@ -389,15 +389,21 @@ public abstract class OneLinkThread implements Runnable
                 while(inLine.hasNextLine())
                 {
                     String received = inLine.nextLine();
+                    System.out.println("Received data during block request wait: " + received);
                     String[] responseParts = nextLine.split(Pattern.quote(":~:"));
                     if(responseParts[0].equals("JFLYCHAINBLOCKRESPONSE") && responseParts[1].equals(datParts[1].split(Pattern.quote("|"))[0]))
                     {
+                        System.out.println("Recognized response!");
                         if(responseParts[2].equals("BLOCK_HASH_NOT_FOUND"))
                         {
                             throw new RemoteBlockIntegrationException("BLOCK_HASH_NOT_FOUND", RemoteBlockIntegrationException.FailureType.MissingRemoteHashOnRequest);
                         }
                         //When the remote block is received it is attempted to be integrated with a recursive call to performNextLineOperation().
-                        else { performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2], true); }
+                        else
+                        {
+                            System.out.println("Doing recursive: " + "JFLYCHAINBLOCK:~:" + responseParts[2]);
+                            performNextLineOperation("JFLYCHAINBLOCK:~:" + responseParts[2], true);
+                        }
                         break;
                     }
                     //Any other data received during this is stored to later be processed.
@@ -422,7 +428,7 @@ public abstract class OneLinkThread implements Runnable
                     doPanthreadDispatch(jNode.getBNM().getByHash(result.replace("SUCCESSFULLY_INTEGRATED:", "")), datParts[0]);
                 }
             }
-            finally { outputLock.unlock(); }
+            finally { if(!recursive && outputLock.isLocked()) { outputLock.unlock(); } }
         }
         else if(result.contains("SUCCESSFULLY_INTEGRATED"))
         {
