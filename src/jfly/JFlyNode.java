@@ -626,13 +626,13 @@ public class JFlyNode {
      */
     public void issueExistenceTransient()
     {
-        String transientBody = "responseping+-+" + getUserID();
+        String transientBody = "responseping+-+" + getUserID() + "+-+" + time();
         OutputJobInfo existTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
         sendJobToThreads(existTransient, null);
     }
     private Hashtable seekers = new Hashtable();
-    private final int seekTolerance = 20000;
-    private final int contactTolerance = 20000;
+    private final int seekTolerance = 2000;
+    private final int contactTolerance = 2000;
     /**
      * Perform seeking operations across the network for a given user.
      * @param userIDorResponseTransient Either the user hash ID for the user to find, or a response transient to check whether it is a user response from a seek operation.
@@ -669,7 +669,7 @@ public class JFlyNode {
             if(!seekers.containsKey(userHashID) || (seekers.containsKey(userHashID) && seekers.get(userHashID).equals("RESPONSE_RECEIVED|RESPONSE_RECEIVED")))
             {
                 seekers.put("SEEK|" + userHashID, time());
-                String transientBody = "seeking+-+" + userHashID;
+                String transientBody = "seeking+-+" + userHashID + "+-+" + time();
                 OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                 sendJobToThreads(seekingTransient, null);
             }
@@ -689,7 +689,7 @@ public class JFlyNode {
                     if(mode.equals("SEEK") && time() - seekTime > seekTolerance)
                     {
                         seekers.put("CONTACT|" + hashID, time());
-                        String transientBody = "forcecontact+-+" + getUserID();
+                        String transientBody = "forcecontact+-+" + getUserID() + "+-+" + time();
                         OutputJobInfo seekingTransient = new OutputJobInfo(OutputJobInfo.JobType.MULTIPLE_DISPATCH, transientBody, "JFLYTRANSIENT");
                         sendJobToThreads(seekingTransient, null);
                     }

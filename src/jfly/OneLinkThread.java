@@ -201,7 +201,11 @@ public abstract class OneLinkThread implements Runnable
                 break;
             //If a transient indicates that another node is seeking this one, it is replied to.
             case "seeking":
-                if(brokenTransient[1].equals(jNode.getUserID())) { jNode.issueExistenceTransient(); }
+                if(brokenTransient[1].equals(jNode.getUserID()))
+                {
+                    jNode.issueExistenceTransient();
+                    jNode.allowTransientForwarding(transientBody);
+                }
                 break;
             //A transient can cause this node to attempt to directly contact another.
             case "forcecontact":
