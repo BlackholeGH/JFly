@@ -102,6 +102,8 @@ public abstract class OneLinkThread implements Runnable
         }
         else if(markedCourtesy > 0) { return; }
         ArrayList<String> clonedDL = new ArrayList<String>();
+        JFlyNode.OutputJobInfo queryPing = new JFlyNode.OutputJobInfo(JFlyNode.OutputJobInfo.JobType.SINGLE_DISPATCH, "Query-ack", "QUERYACK");
+        oneDispatch(queryPing);
         //The recent dispatch log records recent messages sent on this thread.
         outputLock.lock();
         try

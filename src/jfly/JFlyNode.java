@@ -651,7 +651,8 @@ public class JFlyNode {
         //The purge functionality is used to remove a node from the seekers list, i.e. if a new USER_LEFT block is published for that node.
         if(purge != null)
         {
-            if(seekers.containsKey(purge)) { seekers.remove(purge); }
+            if(seekers.containsKey("SEEK|" + purge)) { seekers.remove("SEEK|" + purge); }
+            else if(seekers.containsKey("CONTACT|" + purge)) { seekers.remove("CONTACT|" + purge); }
         }
         //If the input is a transient message, then it is checked to see if it is a response ping from a node being sought.
         if(userIDorResponseTransient.startsWith("JFLYTRANSIENT"))
@@ -713,13 +714,16 @@ public class JFlyNode {
      */
     private void issueTimeout(String hashID)
     {
-        for(OneLinkThread deadThread : getThreadsForUser(hashID))
+        if(getThreadsForUser(hashID) != null)
         {
-            try
+            for(OneLinkThread deadThread : getThreadsForUser(hashID))
             {
-                deadThread.stop(false);
+                try
+                {
+                    deadThread.stop(false);
+                }
+                catch(IOException e) {}
             }
-            catch(IOException e) {}
         }
         //If a user has timed out and cannot be contacted, a USER_LEFT block is authored on their behalf.
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(hashID) + "+-+presumed_disconnect_timeout");
