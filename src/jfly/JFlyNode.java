@@ -1027,6 +1027,7 @@ public class JFlyNode {
             if(!threadQuesting) { super.run(); }
             else
             {
+                Thread.currentThread().setName("Quester connection thread");
                 //A questing thread has a reduced number of possible responses, designed to only handle quester responses and transients.
                 while(inLine != null && inLine.hasNextLine())
                 {
@@ -1074,7 +1075,7 @@ public class JFlyNode {
                         }
                     }
                     catch(Exception e) { System.out.println("Exception during quester handling: " + e.getMessage()); }
-                    finally { inputLock.unlock(); }
+                    finally { if(inputLock.isLocked()) { inputLock.unlock(); } }
                     if(stopping || !threadQuesting) { break; }
                 }
                 System.out.println("Reverting to super.run()");
