@@ -588,13 +588,14 @@ public class JFlyNode {
     /**
      * Create the instance of JFlyNode, singleton style.
      */
-    public static void makeJFlyNode()
+    public static JFlyNode makeJFlyNode()
     {
         if(!single)
         {
             single = true;
-            new JFlyNode();
+            return new JFlyNode();
         }
+        else { return null; }
     }
     /**
      * The JFlyNode constructor. This initialises the directory of OneLinkThreads, the BlockchainNodeManager and starts the FlyLauncher.
@@ -729,6 +730,7 @@ public class JFlyNode {
         blockManager.authorBlock(BlockchainNodeManager.SharedStateBlock.ContentType.USER_LEFT, myNCS.getUserDataFromID(hashID) + "+-+presumed_disconnect_timeout");
         for(String iD : myNCS.getUserIDs())
         {
+            if(iD.equals(getUserID())) { continue; }
             if(getThreadsForUser(iD) == null) { crossNetworkSeekNode("USERHASHID|" + iD); }
         }
     }

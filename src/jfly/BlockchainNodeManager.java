@@ -216,6 +216,10 @@ public class BlockchainNodeManager {
                 myNode.resetAddress(authoredUser.getIP(), this);
             }
         }
+        else
+        {
+            System.out.println("Block author failed with code: " + adder);
+        }
         //Authoring a new block updates the chat window.
         myNode.updateChatWindow();
         //calculateConfigs(myNode.getNCS(), 1);
