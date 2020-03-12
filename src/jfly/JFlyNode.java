@@ -1043,6 +1043,8 @@ public class JFlyNode {
                         {
                             OutputJobInfo ack = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Response_ack_to:" + mySocket.getInetAddress().getHostAddress(), "JFLYMSGACK");
                             oneDispatch(ack);
+                            OutputJobInfo quest = new OutputJobInfo(OutputJobInfo.JobType.SINGLE_DISPATCH, "Sending_reconnect_quester", "JFLYQUESTERREQUEST");
+                            oneDispatch(quest);
                         }
                         switch(datParts[0])               
                         {
@@ -1068,15 +1070,15 @@ public class JFlyNode {
                                 threadQuesting = false;
                                 inputLock.unlock();
                                 outputLock.unlock();
-                                super.run();
                                 break;
                             default:
                                 break;
                         }
                     }
                     finally { inputLock.unlock(); }
-                    if(stopping) { break; }
+                    if(stopping || !threadQuesting) { break; }
                 }
+                super.run();
             }
         }
     }
