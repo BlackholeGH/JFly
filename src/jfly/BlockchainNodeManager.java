@@ -108,7 +108,7 @@ public class BlockchainNodeManager {
                 {
                     newUsers.remove(oldUser);
                     //If a user has left the cluster, then any attempts to contact them must be cancelled with a seeker purge operation on the JFlyNode.
-                    myNode.crossNetworkSeekNode("", oldUser.getID());
+                    myNode.crossNetworkSeekNode("", oldUser.getID(), false);
                 }
             }
         }
