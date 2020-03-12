@@ -413,6 +413,7 @@ public abstract class OneLinkThread implements Runnable
                 System.out.println("Attempting to add initial block cascader...");
                 String initBlockCasc = datParts[1];
                 initBlockCasc = lastRecursiveInsertHash + initBlockCasc.substring(initBlockCasc.indexOf("|"));
+                initBlockCasc = initBlockCasc.substring(0, initBlockCasc.lastIndexOf("|") + 1);
                 System.out.println(initBlockCasc);
                 String secondResult = jNode.tryOneBlock(initBlockCasc);
                 if(!secondResult.contains("SUCCESSFULLY_INTEGRATED")) { throw new RemoteBlockIntegrationException(secondResult, RemoteBlockIntegrationException.FailureType.PostCascadeNonIntegration); }

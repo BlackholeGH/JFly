@@ -683,7 +683,7 @@ public class BlockchainNodeManager {
         {
             SharedStateBlock oneBlock = new SharedStateBlock(rqManager);
             String queryHash = oneBlock.selfInitialize(initData);
-            if(queryHash.equals(oneBlock.getHash()))
+            if(queryHash.isEmpty() || queryHash.equals(oneBlock.getHash()))
             {
                 return oneBlock;
             }
