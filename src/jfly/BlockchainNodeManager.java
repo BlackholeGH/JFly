@@ -480,28 +480,20 @@ public class BlockchainNodeManager {
         {
             MESSAGE, USER_JOINED, USER_LEFT, SYSTEM_UTIL, GENESIS, GROUP_REGISTRAR;
             /**
-             * Returns a ContentType value from its equivalent String representation.
+             * Returns a ContentType value from its equivalent String representation, case insensitive.
              * @param cTypeStr The String representation of a ContentType value.
              * @return The equivalent ContentType value.
              */
             public static ContentType fromString(String cTypeStr)
             {
-                switch(cTypeStr.toUpperCase())
+                try
                 {
-                    case "MESSAGE":
-                        return MESSAGE;
-                    case "USER_JOINED":
-                        return USER_JOINED;
-                    case "USER_LEFT":
-                        return USER_LEFT;
-                    case "SYSTEM_UTIL":
-                        return SYSTEM_UTIL;
-                    case "GENESIS":
-                        return GENESIS;
-                    case "GROUP_REGISTRAR":
-                        return GROUP_REGISTRAR;
+                    return ContentType.valueOf(cTypeStr.toUpperCase());
                 }
-                return null;
+                catch(IllegalArgumentException e)
+                {
+                    return null;
+                }
             }
         }
         String localPrevBlockHash = "";
