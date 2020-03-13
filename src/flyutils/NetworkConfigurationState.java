@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 /**
  * The NetworkConfigurationState class holds details for everyone connected to a network, in this case a JFly cluster.
+ * The class is suitable for reuse as a general component representing users on a network.
  * @author Blackhole (dg7239p)
  */
 public class NetworkConfigurationState {
