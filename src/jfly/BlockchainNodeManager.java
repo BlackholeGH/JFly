@@ -47,6 +47,40 @@ public class BlockchainNodeManager {
         return false;
     }
     /**
+     * Exports the entire contents of the local Blockchain in String format.
+     * @return 
+     */
+    public String exportAll()
+    {
+        Stack<String> hashClone = (Stack<String>)hashChain.clone();
+        Stack<String> hashCloneReOrder = new Stack<String>();
+        Date mDate = new Date(JFlyNode.time());
+        String fullOut = "EXPORTED JFLY BLOCKCHAIN RECORD\n" +
+                "Exported at: " + mDate.toString() + "\n" +
+                "From node with user Hash ID: " + myNode.getUserID() + "\n" +
+                "\n";
+        int hashChainSize = hashClone.size();
+        //The hash list is referenced in order to retrieve the blocks. The order of hashes is inverted to retrieve blocks in chronological order.
+        for(int i = 0; i < hashChainSize; i++)
+        {
+            hashCloneReOrder.add(hashClone.pop());
+        }
+        for(int i = 0; i < hashChainSize; i++)
+        {
+            SharedStateBlock current = null;
+            try
+            {
+                current = (SharedStateBlock)sharedStateBlocks.get(hashCloneReOrder.pop());
+            }
+            catch(Exception e) { }
+            if(current != null)
+            {
+                fullOut += "Block " + (i+1) + ":\n" + current.export() + "\n";
+            }
+        }
+        return fullOut;
+    }
+    /**
      * Reads from the blockchain to update the contents of a NetworkConfigurationState.
      * @param cur The NetworkConfigurationState to update.
      * @param depth The depth to which the blockchain should be read to update the NetworkConfigurationState. Set to -1 to read the entire blockchain.
@@ -636,6 +670,82 @@ public class BlockchainNodeManager {
                     "|" + originatingUserID +
                     "|" + contentType.toString() +
                     "|" + contentData;
+        }
+        /**
+         * Returns the data contained within a block in a human readable format.
+         * @param s The SharedStateBlock to read data from.
+         * @return The formatted data.
+         */
+        public static String formatDataContent(SharedStateBlock s)
+        {
+            String out = "";
+            switch(s.contentType)
+            {
+                case GENESIS:
+                case MESSAGE:
+                    out = "    \"" + s.getContentData() + "\"\n";
+                    break;
+                case SYSTEM_UTIL:
+                    out = "    System message: \"" + s.getContentData() + "\"\n";
+                    break;
+                case USER_LEFT:
+                    String[] usrDat = s.getContentData().split(Pattern.quote("+-+"), -1);
+                    out = "    Details of disconnecting user: \n" +
+                            "        Username: " + usrDat[1] + "\n" +
+                            "        IP Address: " + usrDat[0] + "\n" +
+                            "        Hash ID: " + usrDat[2] + "\n" +
+                            "";
+                    if(usrDat.length == 4)
+                    {
+                        out += "        Additional message: " + usrDat[3] + "\n";
+                    }
+                    break;
+                case USER_JOINED:
+                    String[] usrDatJ = s.getContentData().split(Pattern.quote("+-+"), -1);
+                    out = "    Details of connecting user: \n" +
+                            "        Username: " + usrDatJ[1] + "\n" +
+                            "        IP Address: " + usrDatJ[0] + "\n" +
+                            "        Temporary Hash ID: " + usrDatJ[2] + "\n" +
+                            "        True Block-derived Hash ID: " + SharedStateBlock.getHash(s.getHash()) + "\n" +
+                            "";
+                    if(usrDatJ.length == 4)
+                    {
+                        out += "        Additional message: " + usrDatJ[3] + "\n";
+                    }
+                    break;
+                case GROUP_REGISTRAR:
+                    String[] regiUsers = s.getContentData().split(Pattern.quote("/-/"), -1);
+                    out = "    Registered user details: \n" +
+                            "";
+                    int i = 0;
+                    for(String usr : regiUsers)
+                    {
+                        i++;
+                        NetworkConfigurationState.UserInfo newUser = NetworkConfigurationState.UserInfo.fromString(usr);
+                        out += "        User " + i + ": \n";
+                        out += "            Username: " + newUser.getUserName() + "\n";
+                        out += "            IP Address: " + newUser.getIP()+ "\n";
+                        out += "            Hash ID: " + newUser.getID()+ "\n";
+                    }
+                    break;
+            }
+            return out;
+        }
+        /**
+         * Retrieves the data for this block in a human readable format.
+         * @return A String derived from block content.
+         */
+        public String export()
+        {
+            Date mDate = new Date(updateTime);
+            String out = "JFly " + contentType.toString() + " block.\n"
+                    + "    Block hash: " + getHash() + "\n" 
+                    + "    Authored by: " + myManager.getJNode().getNCS().getUserNameFromID(originatingUserID) + " (UID: " + originatingUserID + ")\n"
+                    + "    Authored at: " + mDate.toString() + "\n"
+                    + "    Block content: \n"
+                    + formatDataContent(this)
+                    + "    Hash of previous block: " + getLastBlockHash() + "\n";
+            return out;
         }
         /**
          * toString() override that converts this SharedStateBlock to a string representation in the form Data|Hash.

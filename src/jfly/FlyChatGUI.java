@@ -3,11 +3,16 @@ package jfly;
 import com.sun.corba.se.impl.naming.namingutil.CorbalocURL;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.text.DecimalFormat;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
@@ -350,6 +355,29 @@ public class FlyChatGUI extends JFrame {
             if (e.getSource() == menuItem2) {
                 setdarkcolor();
 
+            }
+//action to export the local blockchain
+//--------------------------------------------------------------------------------------------------------------------
+            if (e.getSource() == menuItem3) {
+                JFileChooser fr = new JFileChooser();
+                FileSystemView fsv = fr.getFileSystemView();
+                String defDir = fsv.getDefaultDirectory().getPath();
+                String dir = JOptionPane.showInputDialog(null, "Enter blockchain export file location:", defDir);
+                dir = dir + "\\JFly Blockchain Export " + JFlyNode.time() + ".txt";
+                File exportFile = new File(dir);
+                try
+                {
+                    FileWriter fw =  new FileWriter(exportFile);
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    bw.write(myNode.getBNM().exportAll());
+                    bw.close();
+                    fw.close();
+                    JOptionPane.showMessageDialog(null, "Blockchain record successfully exported!");
+                }
+                catch(IOException ioe)
+                {
+                    JOptionPane.showMessageDialog(null, "Could not write to file: " + ioe.getMessage());
+                }
             }
 
 //button to exit the program 
